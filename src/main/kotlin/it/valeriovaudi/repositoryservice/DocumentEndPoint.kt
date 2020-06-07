@@ -2,6 +2,7 @@ package it.valeriovaudi.repositoryservice
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.server.router
 
@@ -19,7 +20,11 @@ class DocumentEndPoint(private val documentRepository: DocumentRepository) {
                                     it.queryParam("fileName").orElse(""),
                                     it.queryParam("fileExt").orElse("")
                             )
-                    ).flatMap { messages -> ok().body(BodyInserters.fromValue(messages)) }
+                    ).flatMap { fileContent ->
+                        ok()
+                                .contentType(MediaType.valueOf(fileContent.contentType.value))
+                                .body(BodyInserters.fromValue(fileContent.content))
+                    }
                 }
             }
 }

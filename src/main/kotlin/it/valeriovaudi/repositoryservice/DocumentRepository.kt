@@ -26,8 +26,7 @@ class S3DocumentRepository(private val s3Client: S3AsyncClient,
                                 AsyncResponseTransformer.toBytes())
                     }
                 }.orElse(Mono.empty())
-                .map { it.asByteArray() }
-                .map { FileContent(fileName, it) }
+                .map { FileContent(fileName, FileContentType(it.response().contentType()), it.asByteArray()) }
     }
 
     private fun s3KeyFor(path: Path, fileName: FileName) =
@@ -38,4 +37,5 @@ class S3DocumentRepository(private val s3Client: S3AsyncClient,
 data class Application(val value: String)
 data class Path(val value: String)
 data class FileName(val name: String, val extension: String)
-data class FileContent(val fileName: FileName, val content: ByteArray)
+data class FileContentType(val value: String)
+data class FileContent(val fileName: FileName, val contentType: FileContentType, val content: ByteArray)
