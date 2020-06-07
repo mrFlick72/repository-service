@@ -30,7 +30,7 @@ class S3DocumentRepository(private val s3Client: S3AsyncClient,
     }
 
     private fun s3KeyFor(path: Path, fileName: FileName) =
-            "${path.value}/${fileName.name}.${fileName.extension}"
+            "${listOf(path.value, fileName.name).filter { it.isNotBlank() }.joinToString("/")}.${fileName.extension}"
 
 }
 
