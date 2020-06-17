@@ -16,9 +16,10 @@ class DocumentEndPoint(private val documentRepository: DocumentRepository) {
                 GET("/documents/{application}") {
                     val fileName = it.queryParam("fileName").orElse("")
                     val fileExtension = it.queryParam("fileExt").orElse("")
+                    val path = it.queryParam("path").map { Path(it) }.orElse(Path(""))
                     documentRepository.findOneDocumentFor(
                             Application(it.pathVariable("application")),
-                            it.queryParam("path").map { Path(it) }.orElse(Path("")),
+                            path,
                             FileName(fileName, fileExtension)
                     ).flatMap { fileContent ->
                         ok()
