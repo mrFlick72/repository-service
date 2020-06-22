@@ -26,7 +26,7 @@ class DocumentEndPoint(private val documentRepository: DocumentRepository) {
                                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$fileName.$fileExtension")
                                 .contentType(MediaType.valueOf(fileContent.contentType.value))
                                 .body(BodyInserters.fromValue(fileContent.content))
-                    }
+                    }.switchIfEmpty(notFound().build())
                 }
             }
 }

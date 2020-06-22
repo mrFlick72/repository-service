@@ -15,7 +15,7 @@ class S3DocumentRepository(private val s3Client: S3AsyncClient,
                            private val applicationStorageRepository: ApplicationStorageRepository) : DocumentRepository {
 
     override fun findOneDocumentFor(application: Application, path: Path, fileName: FileName): Mono<FileContent> {
-        return applicationStorageRepository.getStorageConfigurationFor(application)
+        return applicationStorageRepository.storageConfigurationFor(application)
                 .map { it.bucket as S3Bucket }
                 .map { bucket ->
                     Mono.fromCompletionStage {
@@ -24,8 +24,9 @@ class S3DocumentRepository(private val s3Client: S3AsyncClient,
                                 .key(s3KeyFor(path, fileName))
                                 .build(),
                                 AsyncResponseTransformer.toBytes())
-                    }
-                }.orElse(Mono.empty())
+                    }.onErrorResume { _ -> Mono.empty() }
+                }
+                .orElse(Mono.empty())
                 .map { FileContent(fileName, FileContentType(it.response().contentType()), it.asByteArray()) }
     }
 

@@ -5,7 +5,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
@@ -24,10 +23,6 @@ class RepositoryServiceApplication {
     fun documentRepository(s3Client: S3AsyncClient,
                            applicationStorageRepository: ApplicationStorageRepository) =
             S3DocumentRepository(s3Client, applicationStorageRepository)
-}
-
-@Configuration
-class AwsConfiguration {
 
     @Bean
     fun awsCredentialsProvider(@Value("\${aws.access-key}") accessKey: String,
