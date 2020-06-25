@@ -18,6 +18,7 @@ repositories {
 }
 
 dependencies {
+	implementation("org.springframework.boot:spring-boot-starter-amqp")
 	implementation("org.springframework.cloud:spring-cloud-starter-config")
 	implementation("org.springframework.cloud:spring-cloud-starter-sleuth")
 	implementation("software.amazon.awssdk:s3:2.10.64")
