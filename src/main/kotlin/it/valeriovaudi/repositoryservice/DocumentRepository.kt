@@ -39,9 +39,8 @@ class AWSCompositeDocumentRepository(private val clock: Clock,
             applicationStorageRepository.storageConfigurationFor(application)
                     .map { Mono.just(it.storage) }
                     .orElse(Mono.empty())
-                    .log()
-                    .flatMap { s3Repository.putOnS3(it, path, content).log() }
-                    .flatMap { sqsEventSender.publishEventFor(StorageUpdateEvent(application, path, content.fileName, clock.now())).log() }
+                    .flatMap { s3Repository.putOnS3(it, path, content) }
+                    .flatMap { sqsEventSender.publishEventFor(StorageUpdateEvent(application, path, content.fileName, clock.now())) }
                     .flatMap { Mono.just(Unit) }
 }
 
