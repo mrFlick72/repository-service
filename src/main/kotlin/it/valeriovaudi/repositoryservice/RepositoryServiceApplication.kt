@@ -1,5 +1,6 @@
 package it.valeriovaudi.repositoryservice
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -10,19 +11,28 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient
+import software.amazon.awssdk.services.sqs.SqsAsyncClient
+import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder
 
 @SpringBootApplication
-@EnableConfigurationProperties(YamlApplicationStorageStorage::class)
+@EnableConfigurationProperties(YamlApplicationStorageMapping::class)
 class RepositoryServiceApplication {
 
     @Bean
-    fun applicationStorageRepository(storage: YamlApplicationStorageStorage) =
+    fun applicationStorageRepository(storage: YamlApplicationStorageMapping) =
             YamlApplicationStorageRepository(storage)
 
     @Bean
     fun documentRepository(s3Client: S3AsyncClient,
+                           sqsAsyncClient: SqsAsyncClient,
+                           objectMapper: ObjectMapper,
                            applicationStorageRepository: ApplicationStorageRepository) =
-            S3DocumentRepository(s3Client, applicationStorageRepository)
+            AWSCompositeDocumentRepository(
+                    Clock(),
+                    S3Repository(s3Client),
+                    UpdateEventSender(objectMapper, sqsAsyncClient, applicationStorageRepository),
+                    applicationStorageRepository
+            )
 
     @Bean
     fun awsCredentialsProvider(@Value("\${aws.access-key}") accessKey: String,
@@ -33,6 +43,13 @@ class RepositoryServiceApplication {
     @Bean
     fun s3Client(@Value("\${aws.region}") awsRegion: String,
                  awsCredentialsProvider: AwsCredentialsProvider) = S3AsyncClient.builder()
+            .credentialsProvider(awsCredentialsProvider)
+            .region(Region.of(awsRegion))
+            .build()
+
+    @Bean
+    fun sqsAsyncClient(@Value("\${aws.region}") awsRegion: String,
+                       awsCredentialsProvider: AwsCredentialsProvider) = SqsAsyncClient.builder()
             .credentialsProvider(awsCredentialsProvider)
             .region(Region.of(awsRegion))
             .build()

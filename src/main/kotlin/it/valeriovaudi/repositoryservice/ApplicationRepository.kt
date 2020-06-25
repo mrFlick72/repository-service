@@ -8,19 +8,24 @@ interface ApplicationStorageRepository {
     fun storageConfigurationFor(application: Application): Optional<ApplicationStorageConfig>
 }
 
-data class ApplicationStorageConfig(val application: Application, val bucket: Storage)
+data class ApplicationStorageConfig(val application: Application, val storage: Storage, val updateSignals: Optional<UpdateSignals>)
+data class UpdateSignals(val sqsQueue: String)
+data class Storage(val bucket: String)
 
-sealed class Storage
-data class S3Bucket(val name: String) : Storage()
-
-
-class YamlApplicationStorageRepository(private val storage : YamlApplicationStorageStorage) : ApplicationStorageRepository {
+class YamlApplicationStorageRepository(private val storage: YamlApplicationStorageMapping) : ApplicationStorageRepository {
     override fun storageConfigurationFor(application: Application) =
-        Optional.ofNullable(storage.content[application.value])
-                .map { ApplicationStorageConfig(application, S3Bucket(it)) }
-
+            Optional.ofNullable(storage.content[application.value])
+                    .map {
+                        ApplicationStorageConfig(
+                                application,
+                                Storage(it.bucket),
+                                Optional.ofNullable(it.updateSignalSqsQueue).map(::UpdateSignals)
+                        )
+                    }
 }
 
 @ConstructorBinding
 @ConfigurationProperties(prefix = "in-memory.storage")
-data class YamlApplicationStorageStorage(val content : Map<String, String>)
+data class YamlApplicationStorageMapping(val content: Map<String, ApplicationStorageFeature>)
+
+data class ApplicationStorageFeature(val bucket: String, val updateSignalSqsQueue: String? = null)

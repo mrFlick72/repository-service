@@ -8,6 +8,7 @@ plugins {
 }
 
 extra["springCloudVersion"] = "Hoxton.SR5"
+extra["aws.sdk.version"] = "2.10.64"
 
 group = "it.valeriovaudi"
 //version = "0.0.1-SNAPSHOT"
@@ -18,10 +19,10 @@ repositories {
 }
 
 dependencies {
-	implementation("org.springframework.boot:spring-boot-starter-amqp")
 	implementation("org.springframework.cloud:spring-cloud-starter-config")
 	implementation("org.springframework.cloud:spring-cloud-starter-sleuth")
-	implementation("software.amazon.awssdk:s3:2.10.64")
+	implementation("software.amazon.awssdk:s3:${property("aws.sdk.version")}")
+	implementation("software.amazon.awssdk:sqs:${property("aws.sdk.version")}")
 
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
