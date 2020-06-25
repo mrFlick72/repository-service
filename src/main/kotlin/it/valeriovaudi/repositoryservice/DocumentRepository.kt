@@ -11,6 +11,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import software.amazon.awssdk.services.s3.model.PutObjectResponse
 import software.amazon.awssdk.services.sqs.SqsAsyncClient
+import software.amazon.awssdk.services.sqs.model.SendMessageResponse
 import java.time.Instant
 import java.time.LocalDateTime
 
@@ -34,41 +35,41 @@ class AWSCompositeDocumentRepository(private val clock: Clock,
                     .orElse(Mono.empty())
                     .map { FileContent(fileName, FileContentType(it.response().contentType()), it.asByteArray()) }
 
-    override fun saveDocumentFor(application: Application, path: Path, content: FileContent): Mono<Unit> =
+    override fun saveDocumentFor(application: Application, path: Path, content: FileContent) =
             applicationStorageRepository.storageConfigurationFor(application)
-                    .map { it.storage }
-                    .map { storage -> s3Repository.putOnS3(storage, path, content) }
+                    .map { Mono.just(it.storage) }
                     .orElse(Mono.empty())
-                    .map { _ -> sqsEventSender.publishEventFor(StorageUpdateEvent(application, path, content.fileName, clock.now())) }
+                    .log()
+                    .flatMap { s3Repository.putOnS3(it, path, content).log() }
+                    .flatMap { sqsEventSender.publishEventFor(StorageUpdateEvent(application, path, content.fileName, clock.now())).log() }
                     .flatMap { Mono.just(Unit) }
-
 }
 
 class UpdateEventSender(private val objectMapper: ObjectMapper,
                         private val sqsAsyncClient: SqsAsyncClient,
                         private val applicationStorageRepository: ApplicationStorageRepository) {
-    fun publishEventFor(event: StorageUpdateEvent) =
+    fun publishEventFor(event: StorageUpdateEvent): Mono<Unit> =
             applicationStorageRepository.storageConfigurationFor(event.application)
-                    .map { config ->
+                    .flatMap { config -> config.updateSignals }
+                    .map { updateSignals ->
                         Mono.fromCompletionStage(
                                 sqsAsyncClient.sendMessage {
                                     it.messageBody(objectMapper.writeValueAsString(event))
-                                            .queueUrl(config.updateSignals.orElseThrow().sqsQueue)
+                                            .queueUrl(updateSignals.sqsQueue)
                                 }
-                        )
-                    }.orElse(Mono.empty())
-                    .flatMap { Mono.just(Unit) }
+                        ).flatMap { Mono.just(Unit) }
+                    }.orElse(Mono.just(Unit))
 }
 
 class S3Repository(private val s3Client: S3AsyncClient) {
-    fun putOnS3(storage: Storage, path: Path, content: FileContent): Mono<PutObjectResponse> {
+    fun putOnS3(storage: Storage, path: Path, content: FileContent): Mono<Unit> {
         return Mono.fromCompletionStage {
             s3Client.putObject(PutObjectRequest.builder()
                     .bucket(storage.bucket)
                     .key(s3KeyFor(path, content.fileName))
                     .build(),
                     AsyncRequestBody.fromBytes(content.content))
-        }.onErrorResume { _ -> Mono.empty() }
+        }.flatMap { Mono.just(Unit) }
     }
 
     fun getFromS3(storage: Storage, path: Path, fileName: FileName): Mono<ResponseBytes<GetObjectResponse>> {
@@ -78,7 +79,7 @@ class S3Repository(private val s3Client: S3AsyncClient) {
                     .key(s3KeyFor(path, fileName))
                     .build(),
                     AsyncResponseTransformer.toBytes())
-        }.onErrorResume { _ -> Mono.empty() }
+        }
     }
 
     private fun s3KeyFor(path: Path, fileName: FileName) =
@@ -106,8 +107,10 @@ data class Path(val value: String)
 data class FileName(val name: String, val extension: String) {
     companion object {
         fun fileNameFrom(completeFileName: String): FileName {
-            val fileExt = completeFileName.split("\\.").last()
-            val fileName = completeFileName.removeSuffix(fileExt)
+            val fileExt = completeFileName.split(".").last()
+            println(completeFileName)
+            println(fileExt)
+            val fileName = completeFileName.removeSuffix(".$fileExt")
             return FileName(fileName, fileExt)
         }
     }
