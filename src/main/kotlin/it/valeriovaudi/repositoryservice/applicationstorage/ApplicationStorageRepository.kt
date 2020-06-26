@@ -1,5 +1,6 @@
-package it.valeriovaudi.repositoryservice
+package it.valeriovaudi.repositoryservice.applicationstorage
 
+import it.valeriovaudi.repositoryservice.documents.Application
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 import java.util.*
@@ -7,10 +8,6 @@ import java.util.*
 interface ApplicationStorageRepository {
     fun storageConfigurationFor(application: Application): Optional<ApplicationStorageConfig>
 }
-
-data class ApplicationStorageConfig(val application: Application, val storage: Storage, val updateSignals: Optional<UpdateSignals>)
-data class UpdateSignals(val sqsQueue: String)
-data class Storage(val bucket: String)
 
 class YamlApplicationStorageRepository(private val storage: YamlApplicationStorageMapping) : ApplicationStorageRepository {
     override fun storageConfigurationFor(application: Application) =

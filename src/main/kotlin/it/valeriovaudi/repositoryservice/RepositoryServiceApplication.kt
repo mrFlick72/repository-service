@@ -1,6 +1,13 @@
 package it.valeriovaudi.repositoryservice
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import it.valeriovaudi.repositoryservice.applicationstorage.ApplicationStorageRepository
+import it.valeriovaudi.repositoryservice.applicationstorage.YamlApplicationStorageMapping
+import it.valeriovaudi.repositoryservice.applicationstorage.YamlApplicationStorageRepository
+import it.valeriovaudi.repositoryservice.documents.AWSCompositeDocumentRepository
+import it.valeriovaudi.repositoryservice.documents.S3Repository
+import it.valeriovaudi.repositoryservice.documents.DocumentUpdateEventSender
+import it.valeriovaudi.repositoryservice.time.Clock
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -12,7 +19,6 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.sqs.SqsAsyncClient
-import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder
 
 @SpringBootApplication
 @EnableConfigurationProperties(YamlApplicationStorageMapping::class)
@@ -30,7 +36,7 @@ class RepositoryServiceApplication {
             AWSCompositeDocumentRepository(
                     Clock(),
                     S3Repository(s3Client),
-                    UpdateEventSender(objectMapper, sqsAsyncClient, applicationStorageRepository),
+                    DocumentUpdateEventSender(objectMapper, sqsAsyncClient, applicationStorageRepository),
                     applicationStorageRepository
             )
 

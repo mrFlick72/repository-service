@@ -1,4 +1,4 @@
-package it.valeriovaudi.repositoryservice
+package it.valeriovaudi.repositoryservice.documents
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -9,9 +9,6 @@ import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.server.router
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
-import reactor.util.function.Tuple2
-import reactor.util.function.Tuple3
-import java.awt.image.DataBuffer
 import java.nio.charset.Charset
 
 @Configuration
