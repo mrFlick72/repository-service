@@ -7,7 +7,7 @@ plugins {
 	kotlin("plugin.spring") version "1.3.72"
 }
 
-extra["springCloudVersion"] = "Hoxton.SR5"
+extra["springCloudVersion"] = "Hoxton.SR6"
 extra["aws.sdk.version"] = "2.10.64"
 
 group = "it.valeriovaudi"
