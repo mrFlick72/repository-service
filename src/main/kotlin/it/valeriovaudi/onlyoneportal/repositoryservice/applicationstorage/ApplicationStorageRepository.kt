@@ -1,6 +1,6 @@
-package it.valeriovaudi.repositoryservice.applicationstorage
+package it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage
 
-import it.valeriovaudi.repositoryservice.documents.Application
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.Application
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 import java.util.*

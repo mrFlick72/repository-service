@@ -1,13 +1,13 @@
-package it.valeriovaudi.repositoryservice
+package it.valeriovaudi.onlyoneportal.repositoryservice
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import it.valeriovaudi.repositoryservice.applicationstorage.ApplicationStorageRepository
-import it.valeriovaudi.repositoryservice.applicationstorage.YamlApplicationStorageMapping
-import it.valeriovaudi.repositoryservice.applicationstorage.YamlApplicationStorageRepository
-import it.valeriovaudi.repositoryservice.documents.AWSCompositeDocumentRepository
-import it.valeriovaudi.repositoryservice.documents.S3Repository
-import it.valeriovaudi.repositoryservice.documents.DocumentUpdateEventSender
-import it.valeriovaudi.repositoryservice.time.Clock
+import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.ApplicationStorageRepository
+import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.YamlApplicationStorageMapping
+import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.YamlApplicationStorageRepository
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.AWSCompositeDocumentRepository
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.S3Repository
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentUpdateEventSender
+import it.valeriovaudi.onlyoneportal.repositoryservice.time.Clock
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties

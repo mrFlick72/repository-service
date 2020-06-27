@@ -1,7 +1,7 @@
-package it.valeriovaudi.repositoryservice.documents
+package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 
-import it.valeriovaudi.repositoryservice.applicationstorage.ApplicationStorageRepository
-import it.valeriovaudi.repositoryservice.time.Clock
+import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.ApplicationStorageRepository
+import it.valeriovaudi.onlyoneportal.repositoryservice.time.Clock
 import reactor.core.publisher.Mono
 
 interface DocumentRepository {

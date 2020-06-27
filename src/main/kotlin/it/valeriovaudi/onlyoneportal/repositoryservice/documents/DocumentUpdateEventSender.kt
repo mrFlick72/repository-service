@@ -1,8 +1,8 @@
-package it.valeriovaudi.repositoryservice.documents
+package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import it.valeriovaudi.repositoryservice.applicationstorage.ApplicationStorageRepository
-import it.valeriovaudi.repositoryservice.time.TimeStamp
+import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.ApplicationStorageRepository
+import it.valeriovaudi.onlyoneportal.repositoryservice.time.TimeStamp
 import reactor.core.publisher.Mono
 import software.amazon.awssdk.services.sqs.SqsAsyncClient
 

@@ -1,4 +1,4 @@
-package it.valeriovaudi.repositoryservice.documents
+package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 
 data class Application(val value: String)
 data class Path(val value: String)

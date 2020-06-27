@@ -1,4 +1,4 @@
-package it.valeriovaudi.repositoryservice.time
+package it.valeriovaudi.onlyoneportal.repositoryservice.time
 
 import java.time.Instant
 import java.time.LocalDateTime

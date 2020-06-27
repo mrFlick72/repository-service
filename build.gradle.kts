@@ -10,7 +10,7 @@ plugins {
 extra["springCloudVersion"] = "Hoxton.SR6"
 extra["aws.sdk.version"] = "2.10.64"
 
-group = "it.valeriovaudi"
+group = "it.valeriovaudi.onlyoneportal"
 //version = "0.0.1-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 

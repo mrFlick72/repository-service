@@ -1,6 +1,6 @@
-package it.valeriovaudi.repositoryservice.documents
+package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 
-import it.valeriovaudi.repositoryservice.applicationstorage.Storage
+import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.Storage
 import reactor.core.publisher.Mono
 import software.amazon.awssdk.core.ResponseBytes
 import software.amazon.awssdk.core.async.AsyncRequestBody

@@ -1,6 +1,6 @@
-package it.valeriovaudi.repositoryservice.applicationstorage
+package it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage
 
-import it.valeriovaudi.repositoryservice.documents.Application
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.Application
 import java.util.*
 
 data class ApplicationStorageConfig(val application: Application, val storage: Storage, val updateSignals: Optional<UpdateSignals>)

@@ -1,4 +1,4 @@
-package it.valeriovaudi.repositoryservice.documents
+package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
