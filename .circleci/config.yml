@@ -12,7 +12,6 @@ jobs:
           name: docker push
           command: |
             docker login -u $DOCKER_HUB_USERNAME -p $DOCKER_HUB_PASSWORD
-            mvn docker:build docker:push
 
       - run: ./gradlew build docker dockerPush
 
