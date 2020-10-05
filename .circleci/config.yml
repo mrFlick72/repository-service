@@ -11,5 +11,7 @@ jobs:
       - run:
           name: docker push
           command: |
+            sudo snap install docker circleci
+            sudo snap connect circleci:docker docker
             docker login -u $DOCKER_HUB_USERNAME -p $DOCKER_HUB_PASSWORD
             ./gradlew build docker dockerPush
