@@ -1,20 +1,20 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "2.3.1.RELEASE"
-    id("io.spring.dependency-management") version "1.0.9.RELEASE"
+    id("org.springframework.boot") version "2.3.4.RELEASE"
+    id("io.spring.dependency-management") version "1.0.10.RELEASE"
     id("com.palantir.docker") version "0.25.0"
 
     kotlin("jvm") version "1.3.72"
     kotlin("plugin.spring") version "1.3.72"
 }
 
-extra["springCloudVersion"] = "Hoxton.SR6"
+extra["springCloudVersion"] = "Hoxton.SR8"
 extra["aws.sdk.version"] = "2.10.64"
 
 group = "it.valeriovaudi.onlyoneportal"
 //version = "0.0.1-SNAPSHOT"
-java.sourceCompatibility = JavaVersion.VERSION_1_8
+java.sourceCompatibility = JavaVersion.VERSION_11
 
 repositories {
     mavenCentral()
@@ -52,7 +52,7 @@ tasks.withType<Test> {
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         freeCompilerArgs = listOf("-Xjsr305=strict")
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
 }
 

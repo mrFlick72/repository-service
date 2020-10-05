@@ -1,0 +1,17 @@
+version: 2.1
+
+jobs:
+  build:
+    image: circleci/openjdk-11
+
+    steps:
+      - checkout
+
+      - run:
+          name: docker push
+          command: |
+            docker login -u $DOCKER_HUB_USERNAME -p $DOCKER_HUB_PASSWORD
+            mvn docker:build docker:push
+
+      - run: ./gradlew build docker dockerPush
+
