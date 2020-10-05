@@ -18,7 +18,7 @@ jobs:
       - checkout
 
       - run: ./gradlew build
-        -
+
       - run:
           name: docker push
           command: |
