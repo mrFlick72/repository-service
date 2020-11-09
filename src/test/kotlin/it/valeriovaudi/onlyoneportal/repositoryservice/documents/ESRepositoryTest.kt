@@ -14,13 +14,7 @@ import java.util.function.Consumer
 internal class ESRepositoryTest {
 
     private fun template(): ReactiveElasticsearchTemplate =
-            ReactiveElasticsearchTemplate(
-                    create(
-                            builder()
-                                    .connectedTo("localhost:39200")
-                                    .build()
-                    )
-            )
+            ReactiveElasticsearchTemplate(create(builder().connectedTo("localhost:39200").build()))
 
     @Test
     internal fun `save a document on es`() {
@@ -28,7 +22,13 @@ internal class ESRepositoryTest {
         val reactiveElasticsearchTemplate = template()
         val esRepository = ESRepository(reactiveElasticsearchTemplate, IdGenerator { id })
 
-        val verifier = StepVerifier.create(esRepository.save(DocumentMetadata(mapOf("test" to "test"))))
+        val saveStream = esRepository.save(
+                Application("application"),
+                FileName("a_file", "jpg"),
+                DocumentMetadata(mapOf("test" to "test"))
+        )
+
+        val verifier = StepVerifier.create(saveStream)
         verifier.assertNext(Consumer {
             Assertions.assertEquals(mapOf(
                     "index" to "application",
