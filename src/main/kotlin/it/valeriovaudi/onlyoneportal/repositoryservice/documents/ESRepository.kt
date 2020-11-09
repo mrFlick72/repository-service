@@ -30,15 +30,16 @@ class ESRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsea
     }
 
     private fun metadata(path: Path, fileName: FileName, documentMetadata: DocumentMetadata) =
-            documentMetadata.content
-                    .plus(
-                            mapOf(
-                                    "fullQualifiedFilePath" to S3Repository.s3KeyFor(path, fileName),
-                                    "path" to path.value,
-                                    "fileName" to fileName.name,
-                                    "extension" to fileName.extension
-                            )
-                    )
+            documentMetadata.content.plus(fileBasedMetadataFor(path, fileName))
+
+    private fun fileBasedMetadataFor(path: Path, fileName: FileName): Map<String, String> {
+        return mapOf(
+                "fullQualifiedFilePath" to S3Repository.s3KeyFor(path, fileName),
+                "path" to path.value,
+                "fileName" to fileName.name,
+                "extension" to fileName.extension
+        )
+    }
 
     private fun resultBodyFor(documentMetadata: IndexResponse): Map<String, String> =
             mapOf("index" to documentMetadata.index, "documentId" to documentMetadata.id)
