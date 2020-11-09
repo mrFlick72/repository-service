@@ -23,7 +23,8 @@ internal class ESRepositoryTest {
         val esRepository = ESRepository(reactiveElasticsearchTemplate, IdGenerator { id })
 
         val saveStream = esRepository.save(
-                Application("application"),
+                Application("an_app"),
+                Path("/apath"),
                 FileName("a_file", "jpg"),
                 DocumentMetadata(mapOf("test" to "test"))
         )
@@ -31,10 +32,11 @@ internal class ESRepositoryTest {
         val verifier = StepVerifier.create(saveStream)
         verifier.assertNext(Consumer {
             Assertions.assertEquals(mapOf(
-                    "index" to "application",
+                    "index" to "application_indexes_an_app",
                     "documentId" to id.toString()
             ), it)
         })
         verifier.verifyComplete()
     }
+
 }

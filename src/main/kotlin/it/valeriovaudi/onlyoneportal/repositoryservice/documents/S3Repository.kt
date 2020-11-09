@@ -12,6 +12,11 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest
 
 
 class S3Repository(private val s3Client: S3AsyncClient) {
+    companion object {
+        fun s3KeyFor(path: Path, fileName: FileName) =
+                "${listOf(path.value, fileName.name).filter { it.isNotBlank() }.joinToString("/")}.${fileName.extension}"
+    }
+
     fun putOnS3(storage: Storage, path: Path, content: FileContent): Mono<Unit> {
         return Mono.fromCompletionStage {
             s3Client.putObject(PutObjectRequest.builder()
@@ -32,6 +37,5 @@ class S3Repository(private val s3Client: S3AsyncClient) {
         }
     }
 
-    private fun s3KeyFor(path: Path, fileName: FileName) =
-            "${listOf(path.value, fileName.name).filter { it.isNotBlank() }.joinToString("/")}.${fileName.extension}"
+
 }
