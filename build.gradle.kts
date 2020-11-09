@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "2.3.4.RELEASE"
+    id("org.springframework.boot") version "2.3.5.RELEASE"
     id("io.spring.dependency-management") version "1.0.10.RELEASE"
     id("com.palantir.docker") version "0.25.0"
 
@@ -9,7 +9,7 @@ plugins {
     kotlin("plugin.spring") version "1.3.72"
 }
 
-extra["springCloudVersion"] = "Hoxton.SR8"
+extra["springCloudVersion"] = "Hoxton.SR9"
 extra["aws.sdk.version"] = "2.10.64"
 
 group = "it.valeriovaudi.onlyoneportal"
@@ -23,6 +23,8 @@ repositories {
 dependencies {
     implementation("org.springframework.cloud:spring-cloud-starter-config")
     implementation("org.springframework.cloud:spring-cloud-starter-sleuth")
+    implementation("org.springframework.boot:spring-boot-starter-data-elasticsearch")
+
     implementation("software.amazon.awssdk:s3:${property("aws.sdk.version")}")
     implementation("software.amazon.awssdk:sqs:${property("aws.sdk.version")}")
 
