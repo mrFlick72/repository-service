@@ -66,16 +66,16 @@ class ESRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsea
             mapOf("index" to documentMetadata.index, "documentId" to documentMetadata.id)
 
     fun findFor(application: Application, documentMetadata: DocumentMetadata): Flux<DocumentMetadata> {
-        val query = QueryBuilders.boolQuery();
-        documentMetadata.content.map { entry -> query.should(QueryBuilders.matchQuery(entry.key, entry.value)) }
-
-        println("query: $query")
-        return reactiveElasticsearchTemplate.execute { client ->
-            client.search { searchRequest ->
-                searchRequest.indices(indexNameFor(application))
-                        .source(searchSource().query(query).from(0).size(5))
-            }
-        }.toFlux().map { DocumentMetadata(it.sourceAsMap.mapValues { entry -> entry.toString() }) }
+        return Flux.just(QueryBuilders.boolQuery())
+                .map { documentMetadata.content.map { entry -> it.should(QueryBuilders.matchQuery(entry.key, entry.value)) }; it }
+                .flatMap {
+                    reactiveElasticsearchTemplate.execute { client ->
+                        client.search { searchRequest ->
+                            searchRequest.indices(indexNameFor(application))
+                                    .source(searchSource().query(it).from(0).size(5))
+                        }
+                    }
+                }.map { DocumentMetadata(it.sourceAsMap.mapValues { entry -> entry.toString() }) }
     }
 
 }
