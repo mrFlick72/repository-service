@@ -6,9 +6,6 @@ executors:
       image: ubuntu-2004:202008-01
 jobs:
   build:
-    branches:
-      only:
-        - master
     executor: machine-executor
     steps:
       - run:
@@ -31,5 +28,8 @@ jobs:
 
 workflows:
   build-master:
+    branches:
+      only:
+        - master
     jobs:
       - build
