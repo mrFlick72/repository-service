@@ -48,16 +48,21 @@ internal class ESRepositoryTest {
         val verifier = StepVerifier.create(stream)
 
         verifier.assertNext {
-            Assertions.assertEquals(DocumentMetadata(
-                    mapOf(
-                            "prop1" to "A_VALUE",
-                            "prop2" to "ANOTHER_VALUE",
-                            "bucket" to "A_BUCKET",
-                            "path" to "/a_path",
-                            "fullQualifiedFilePath" to "/a_path/a_file.jpg",
-                            "fileName" to "a_file",
-                            "extension" to "jpg"
+            Assertions.assertEquals(DocumentMetadataPage(listOf(
+                    DocumentMetadata(
+                            mapOf(
+                                    "prop1" to "A_VALUE",
+                                    "prop2" to "ANOTHER_VALUE",
+                                    "bucket" to "A_BUCKET",
+                                    "path" to "/a_path",
+                                    "fullQualifiedFilePath" to "/a_path/a_file.jpg",
+                                    "fileName" to "a_file",
+                                    "extension" to "jpg"
+                            )
                     )
+            ),
+                    0, 10
+
             ), it)
         }
         verifier.verifyComplete()
