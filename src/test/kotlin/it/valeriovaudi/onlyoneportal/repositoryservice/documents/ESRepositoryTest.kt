@@ -1,9 +1,7 @@
 package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.TestFixture.testableApplicationStorageRepository
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Order
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.*
 import org.springframework.data.elasticsearch.client.ClientConfiguration.builder
 import org.springframework.data.elasticsearch.client.reactive.ReactiveRestClients.create
 import org.springframework.data.elasticsearch.core.ReactiveElasticsearchTemplate
@@ -11,7 +9,7 @@ import org.springframework.util.IdGenerator
 import reactor.test.StepVerifier
 import java.util.*
 
-
+@TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 internal class ESRepositoryTest {
 
     private fun template(): ReactiveElasticsearchTemplate =
