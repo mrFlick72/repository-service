@@ -1,6 +1,9 @@
 package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 
 data class Application(val value: String)
+
+data class DocumentMetadataPages(val documents: List<DocumentMetadata>, val page: Int, val pageSize: Int)
+
 data class Path(val value: String)
 data class FileName(val name: String, val extension: String) {
     companion object {

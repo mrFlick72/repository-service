@@ -1,6 +1,8 @@
 package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.TestFixture.testableApplicationStorageRepository
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.springframework.data.elasticsearch.client.ClientConfiguration.builder
 import org.springframework.data.elasticsearch.client.reactive.ReactiveRestClients.create
@@ -16,27 +18,40 @@ internal class ESRepositoryTest {
     private fun template(): ReactiveElasticsearchTemplate =
             ReactiveElasticsearchTemplate(create(builder().connectedTo("localhost:39200").build()))
 
-    @Test
-    internal fun `save a document on es`() {
-        val id = UUID.randomUUID()
-        val reactiveElasticsearchTemplate = template()
-        val esRepository = ESRepository(reactiveElasticsearchTemplate, IdGenerator { id })
+    private val id = UUID.randomUUID()
 
+    private val reactiveElasticsearchTemplate = template()
+    private val esRepository = ESRepository(reactiveElasticsearchTemplate, testableApplicationStorageRepository, IdGenerator { id })
+
+    //    @Test
+    @Order(1)
+    internal fun `save a document on es`() {
         val saveStream = esRepository.save(
                 Application("an_app"),
-                Path("/apath"),
+                Path("/a_path"),
                 FileName("a_file", "jpg"),
-                DocumentMetadata(mapOf("test" to "test"))
+                DocumentMetadata(mapOf("prop1" to "A_VALUE", "prop2" to "ANOTHER_VALUE"))
         )
 
         val verifier = StepVerifier.create(saveStream)
-        verifier.assertNext(Consumer {
+        verifier.assertNext {
             Assertions.assertEquals(mapOf(
-                    "index" to "application_indexes_an_app",
+                    "index" to "an_app_indexes",
                     "documentId" to id.toString()
             ), it)
-        })
+        }
         verifier.verifyComplete()
     }
 
+    @Test
+    @Order(2)
+    internal fun `get a document on ES`() {
+        val stream = esRepository.findFor(Application("an_app"),
+                DocumentMetadata(mapOf("prop1" to "A_VALUE")))
+        val verifier = StepVerifier.create(stream)
+
+        println(stream.collectList().block())
+//        verifier.assertNext { println(it) }
+//        verifier.verifyComplete()
+    }
 }
