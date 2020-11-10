@@ -10,7 +10,6 @@ import org.springframework.data.elasticsearch.core.ReactiveElasticsearchTemplate
 import org.springframework.util.IdGenerator
 import reactor.test.StepVerifier
 import java.util.*
-import java.util.function.Consumer
 
 
 internal class ESRepositoryTest {
@@ -23,7 +22,7 @@ internal class ESRepositoryTest {
     private val reactiveElasticsearchTemplate = template()
     private val esRepository = ESRepository(reactiveElasticsearchTemplate, testableApplicationStorageRepository, IdGenerator { id })
 
-    //    @Test
+    @Test
     @Order(1)
     internal fun `save a document on es`() {
         val saveStream = esRepository.save(
@@ -50,8 +49,19 @@ internal class ESRepositoryTest {
                 DocumentMetadata(mapOf("prop1" to "A_VALUE")))
         val verifier = StepVerifier.create(stream)
 
-        println(stream.collectList().block())
-//        verifier.assertNext { println(it) }
-//        verifier.verifyComplete()
+        verifier.assertNext {
+            Assertions.assertEquals(DocumentMetadata(
+                    mapOf(
+                            "prop1" to "A_VALUE",
+                            "prop2" to "ANOTHER_VALUE",
+                            "bucket" to "A_BUCKET",
+                            "path" to "/a_path",
+                            "fullQualifiedFilePath" to "/a_path/a_file.jpg",
+                            "fileName" to "a_file",
+                            "extension" to "jpg"
+                    )
+            ), it)
+        }
+        verifier.verifyComplete()
     }
 }

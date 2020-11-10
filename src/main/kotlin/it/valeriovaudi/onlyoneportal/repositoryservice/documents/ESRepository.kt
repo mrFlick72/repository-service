@@ -75,7 +75,7 @@ class ESRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsea
                                     .source(searchSource().query(it).from(0).size(5))
                         }
                     }
-                }.map { DocumentMetadata(it.sourceAsMap.mapValues { entry -> entry.toString() }) }
+                }.map { DocumentMetadata(it.sourceAsMap.mapValues { entry -> entry.value.toString() }) }
     }
 
 }
