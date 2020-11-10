@@ -1,5 +1,13 @@
 version: 2.1
 
+workflows:
+  build-master:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only: master
+
 executors:
   machine-executor:
     machine:
@@ -25,11 +33,3 @@ jobs:
           command: |
             docker login -u $DOCKER_HUB_USERNAME -p $DOCKER_HUB_PASSWORD
             ./gradlew docker dockerPush
-
-workflows:
-  build-master:
-    jobs:
-      - build:
-          filters:
-            branches:
-              only: master
