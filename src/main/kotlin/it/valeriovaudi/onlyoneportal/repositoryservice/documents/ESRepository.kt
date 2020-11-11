@@ -2,8 +2,6 @@ package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 
 import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.ApplicationStorageRepository
 import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.Storage
-import it.valeriovaudi.onlyoneportal.repositoryservice.documents.EsHelper.indexNameFor
-import it.valeriovaudi.onlyoneportal.repositoryservice.documents.EsHelper.metadata
 import org.elasticsearch.action.index.IndexRequest
 import org.elasticsearch.action.index.IndexResponse
 import org.elasticsearch.action.search.SearchRequest
@@ -24,10 +22,16 @@ class ESRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsea
                    private val applicationStorageRepository: ApplicationStorageRepository,
                    private val idGenerator: IdGenerator) {
 
+    //*********************** WRITE FUNCTION ***************************************************************************
+
     fun save(application: Application, path: Path, fileName: FileName, documentMetadata: DocumentMetadata) =
             saveOnEsFor(application, path, fileName, documentMetadata)
                     .toMono()
-                    .map(EsHelper::resultBodyFor)
+                    .map(::extractIndexIdFor)
+
+
+    private fun extractIndexIdFor(documentMetadata: IndexResponse): Map<String, String> =
+            mapOf("index" to documentMetadata.index, "documentId" to documentMetadata.id)
 
     private fun saveOnEsFor(application: Application, path: Path, fileName: FileName, documentMetadata: DocumentMetadata): Publisher<IndexResponse> {
         return reactiveElasticsearchTemplate.execute { client ->
@@ -49,6 +53,24 @@ class ESRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsea
                 }
 
     }
+
+    private fun metadata(storage: Storage,
+                 path: Path,
+                 fileName: FileName,
+                 documentMetadata: DocumentMetadata) =
+            documentMetadata.content.plus(fileBasedMetadataFor(storage, path, fileName))
+
+
+    private fun fileBasedMetadataFor(storage: Storage, path: Path, fileName: FileName): Map<String, String> =
+            mapOf(
+                    "fullQualifiedFilePath" to S3Repository.s3KeyFor(path, fileName),
+                    "bucket" to storage.bucket,
+                    "path" to path.value,
+                    "fileName" to fileName.name,
+                    "extension" to fileName.extension
+            )
+
+    //*********************** READ FUNCTION ****************************************************************************
 
 
     fun find(application: Application, documentMetadata: DocumentMetadata, page: Int = 0, size: Int = 10): Mono<DocumentMetadataPage> {
@@ -77,31 +99,9 @@ class ESRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsea
         }
     }
 
+    private fun indexNameFor(application: Application) = "${application.value}_indexes"
+
     private fun adaptDocument(it: SearchHit) =
             DocumentMetadata(it.sourceAsMap.mapValues { entry -> entry.value.toString() })
-
-}
-
-private object EsHelper {
-    fun metadata(storage: Storage,
-                 path: Path,
-                 fileName: FileName,
-                 documentMetadata: DocumentMetadata) =
-            documentMetadata.content.plus(fileBasedMetadataFor(storage, path, fileName))
-
-
-    private fun fileBasedMetadataFor(storage: Storage, path: Path, fileName: FileName): Map<String, String> =
-            mapOf(
-                    "fullQualifiedFilePath" to S3Repository.s3KeyFor(path, fileName),
-                    "bucket" to storage.bucket,
-                    "path" to path.value,
-                    "fileName" to fileName.name,
-                    "extension" to fileName.extension
-            )
-
-    fun indexNameFor(application: Application) = "${application.value}_indexes"
-
-    fun resultBodyFor(documentMetadata: IndexResponse): Map<String, String> =
-            mapOf("index" to documentMetadata.index, "documentId" to documentMetadata.id)
 
 }
