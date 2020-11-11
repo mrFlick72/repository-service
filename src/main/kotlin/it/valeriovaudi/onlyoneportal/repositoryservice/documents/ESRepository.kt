@@ -1,6 +1,7 @@
 package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 
 import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.ApplicationStorageRepository
+import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.Storage
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.EsHelper.indexNameFor
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.EsHelper.metadata
 import org.elasticsearch.action.index.IndexRequest
@@ -38,11 +39,15 @@ class ESRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsea
                                 path: Path,
                                 fileName: FileName,
                                 documentMetadata: DocumentMetadata): (IndexRequest) -> Unit = { indexRequest ->
-        indexRequest.index(indexNameFor(application))
-                .source(metadata(applicationStorageRepository, application, path, fileName, documentMetadata))
-                .id(idGenerator.generateId().toString())
-                .setRefreshPolicy(RefreshPolicy.IMMEDIATE)
-                .create(true)
+        applicationStorageRepository.storageConfigurationFor(application)
+                .map {
+                    indexRequest.index(indexNameFor(application))
+                            .source(metadata(it.storage, path, fileName, documentMetadata))
+                            .id(idGenerator.generateId().toString())
+                            .setRefreshPolicy(RefreshPolicy.IMMEDIATE)
+                            .create(true)
+                }
+
     }
 
 
@@ -68,28 +73,24 @@ class ESRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsea
         }
     }
 
-
 }
 
 private object EsHelper {
-    fun fileBasedMetadataFor(applicationStorageRepository: ApplicationStorageRepository, application: Application, path: Path, fileName: FileName): Map<String, String> {
-        return applicationStorageRepository.storageConfigurationFor(application).map {
+    fun metadata(storage: Storage,
+                 path: Path,
+                 fileName: FileName,
+                 documentMetadata: DocumentMetadata) =
+            documentMetadata.content.plus(fileBasedMetadataFor(storage, path, fileName))
+
+
+    private fun fileBasedMetadataFor(storage: Storage, path: Path, fileName: FileName): Map<String, String> =
             mapOf(
                     "fullQualifiedFilePath" to S3Repository.s3KeyFor(path, fileName),
-                    "bucket" to it.storage.bucket,
+                    "bucket" to storage.bucket,
                     "path" to path.value,
                     "fileName" to fileName.name,
                     "extension" to fileName.extension
             )
-        }.orElse(emptyMap())
-    }
-
-    fun metadata(applicationStorageRepository: ApplicationStorageRepository,
-                 application: Application,
-                 path: Path,
-                 fileName: FileName,
-                 documentMetadata: DocumentMetadata) =
-            documentMetadata.content.plus(fileBasedMetadataFor(applicationStorageRepository, application, path, fileName))
 
     fun indexNameFor(application: Application) = "${application.value}_indexes"
 
