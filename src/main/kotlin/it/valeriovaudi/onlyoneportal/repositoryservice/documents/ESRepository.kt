@@ -53,11 +53,15 @@ class ESRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsea
 
     fun find(application: Application, documentMetadata: DocumentMetadata, page: Int = 0, size: Int = 10): Mono<DocumentMetadataPage> {
         return Flux.just(QueryBuilders.boolQuery())
-                .map { documentMetadata.content.map { entry -> it.should(QueryBuilders.matchQuery(entry.key, entry.value)) }; it }
+                .map { boolQueryBuilder(documentMetadata, it) }
                 .flatMap { findFromEsFor(application, it, page, size) }
-                .map { DocumentMetadata(it.sourceAsMap.mapValues { entry -> entry.value.toString() }) }
+                .map(this::adaptDocument)
                 .collectList()
                 .map { DocumentMetadataPage(it, page, size) }
+    }
+
+    private fun boolQueryBuilder(documentMetadata: DocumentMetadata, builder: BoolQueryBuilder): BoolQueryBuilder {
+        documentMetadata.content.map { entry -> builder.should(QueryBuilders.matchQuery(entry.key, entry.value)) }; return builder
     }
 
     private fun findFromEsFor(application: Application, it: BoolQueryBuilder?, page: Int, size: Int): Publisher<SearchHit> {
@@ -72,6 +76,9 @@ class ESRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsea
                     .source(searchSource().query(it).from(page).size(size))
         }
     }
+
+    private fun adaptDocument(it: SearchHit) =
+            DocumentMetadata(it.sourceAsMap.mapValues { entry -> entry.value.toString() })
 
 }
 
