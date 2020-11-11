@@ -43,7 +43,7 @@ internal class ESRepositoryTest {
     @Test
     @Order(2)
     internal fun `get a document on ES`() {
-        val stream = esRepository.findFor(Application("an_app"),
+        val stream = esRepository.find(Application("an_app"),
                 DocumentMetadata(mapOf("prop1" to "A_VALUE")))
         val verifier = StepVerifier.create(stream)
 
