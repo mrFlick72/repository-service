@@ -51,7 +51,6 @@ class ESRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsea
                             .setRefreshPolicy(RefreshPolicy.IMMEDIATE)
                             .create(true)
                 }
-
     }
 
     private fun metadata(storage: Storage,

@@ -17,10 +17,11 @@ class S3Repository(private val s3Client: S3AsyncClient) {
                 "${listOf(path.value, fileName.name).filter { it.isNotBlank() }.joinToString("/")}.${fileName.extension}"
     }
 
-    fun putOnS3(storage: Storage, path: Path, content: FileContent): Mono<Unit> {
+    fun putOnS3(storage: Storage, path: Path, content: FileContent, metadata: DocumentMetadata = DocumentMetadata.empty()): Mono<Unit> {
         return Mono.fromCompletionStage {
             s3Client.putObject(PutObjectRequest.builder()
                     .bucket(storage.bucket)
+                    .metadata(metadata.content)
                     .key(s3KeyFor(path, content.fileName))
                     .build(),
                     AsyncRequestBody.fromBytes(content.content))

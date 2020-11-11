@@ -17,7 +17,12 @@ data class FileName(val name: String, val extension: String) {
     }
 }
 
-data class DocumentMetadata(val content: Map<String, String>)
+data class DocumentMetadata(val content: Map<String, String>) {
+    companion object {
+        fun empty() = DocumentMetadata(emptyMap())
+    }
+}
+
 data class FileContentType(val value: String)
 data class FileContent(val fileName: FileName, val contentType: FileContentType, val content: ByteArray) {
     override fun equals(other: Any?): Boolean {
