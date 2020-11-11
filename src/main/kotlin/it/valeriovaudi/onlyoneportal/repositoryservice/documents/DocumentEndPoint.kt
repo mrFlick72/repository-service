@@ -5,8 +5,10 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.codec.multipart.FilePart
+import org.springframework.http.codec.multipart.Part
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.server.router
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import java.nio.charset.Charset
@@ -37,20 +39,26 @@ class DocumentEndPoint(private val documentRepository: DocumentRepository) {
                     val application = Application(requesrt.pathVariable("application"))
 
                     requesrt.multipartData().flatMap {
+                        val metadata = Flux.fromIterable(it["metadata"].orEmpty())
+                                .flatMap(Part::content)
+                                .map { it.toString(Charset.defaultCharset()) }
+                                .collectList()
+
                         val path = it["path"]?.get(0)!!.content().map { Path(it.toString(Charset.defaultCharset())) }.toMono()
                         val file = (it["file"]?.get(0)!! as FilePart).toMono()
                         val fileContent = (it["file"]?.get(0)!! as FilePart).content().toMono()
-                        Mono.zip(path, file, fileContent)
+                        Mono.zip(path, file, fileContent, metadata)
                     }.map { t ->
                         val filePart = t.t2
-                        Pair(t.t1,
+                        Triple(t.t1,
                                 FileContent(
                                         fileName = FileName.fileNameFrom(filePart.filename()),
                                         contentType = FileContentType(filePart.headers().contentType.toString()),
                                         content = t.t3.asInputStream().readAllBytes()
-                                )
+                                ),
+                                t.t4
                         )
-                    }.flatMap { documentRepository.saveDocumentFor(application, it.first, it.second) }
+                    }.flatMap { documentRepository.saveDocumentFor(application, it.first, it.second, DocumentMetadata(it.third)) }
                             .flatMap { noContent().build() }
                 }
             }
