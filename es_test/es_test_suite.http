@@ -1,1 +1,1 @@
-GET http://localhost:39200/_search
+GET http://localhost:9200/_search

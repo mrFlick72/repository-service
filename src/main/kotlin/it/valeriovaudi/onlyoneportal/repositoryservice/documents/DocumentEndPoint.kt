@@ -1,14 +1,13 @@
 package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.codec.multipart.FilePart
-import org.springframework.http.codec.multipart.Part
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.server.router
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import java.nio.charset.Charset
@@ -17,7 +16,7 @@ import java.nio.charset.Charset
 class DocumentEndPoint(private val documentRepository: DocumentRepository) {
 
     @Bean
-    fun messageEndPointRoute() =
+    fun messageEndPointRoute(objectMapper: ObjectMapper) =
             router {
                 GET("/documents/{application}") {
                     val fileName = it.queryParam("fileName").orElse("")
@@ -39,10 +38,11 @@ class DocumentEndPoint(private val documentRepository: DocumentRepository) {
                     val application = Application(requesrt.pathVariable("application"))
 
                     requesrt.multipartData().flatMap {
-                        val metadata = Flux.fromIterable(it["metadata"].orEmpty())
-                                .flatMap(Part::content)
+                        val metadata = it["metadata"].orEmpty().first().content()
                                 .map { it.toString(Charset.defaultCharset()) }
-                                .collectList()
+                                .toMono()
+                                .map { objectMapper.readValue(it, Map::class.java) }
+                                .map { it as Map<String, String> }
 
                         val path = it["path"]?.get(0)!!.content().map { Path(it.toString(Charset.defaultCharset())) }.toMono()
                         val file = (it["file"]?.get(0)!! as FilePart).toMono()
