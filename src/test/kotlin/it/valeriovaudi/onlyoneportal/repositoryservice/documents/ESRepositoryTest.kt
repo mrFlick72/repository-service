@@ -1,6 +1,6 @@
 package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 
-import it.valeriovaudi.onlyoneportal.repositoryservice.documents.TestFixture.iGenerator
+import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.Storage
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.TestFixture.testableApplicationStorageRepository
 import org.junit.jupiter.api.*
 import org.springframework.data.elasticsearch.client.ClientConfiguration.builder
@@ -15,29 +15,29 @@ internal class ESRepositoryTest {
     private fun template(): ReactiveElasticsearchTemplate =
             ReactiveElasticsearchTemplate(create(builder().connectedTo("localhost:39200").build()))
 
-    private val id = UUID.randomUUID()
+    private val randomizer = UUID.randomUUID().toString()
 
     private val reactiveElasticsearchTemplate = template()
-    private val esRepository = ESRepository(reactiveElasticsearchTemplate, testableApplicationStorageRepository, iGenerator(id))
+    val idGenerator = DocumentMetadataEsIdGenerator()
+    private val esRepository = ESRepository(reactiveElasticsearchTemplate, testableApplicationStorageRepository, idGenerator)
 
     @Test
     @Order(1)
     internal fun `save a document on es`() {
-        val saveStream = esRepository.save(
-                Document(
-                        Application("an_app"),
-                        FileContent(FileName("a_file", "jpg"), FileContentType(""), ByteArray(0)),
-                        Path("/a_path"),
-                        DocumentMetadata(mapOf("prop1" to "A_VALUE", "prop2" to "ANOTHER_VALUE")
-                        )
+        val document = Document(
+                Application("an_app"),
+                FileContent(FileName("a_file", "jpg"), FileContentType(""), ByteArray(0)),
+                Path("a_path"),
+                DocumentMetadata(mapOf("randomizer" to randomizer, "prop1" to "A_VALUE", "prop2" to "ANOTHER_VALUE")
                 )
         )
+        val saveStream = esRepository.save(document)
 
         val verifier = StepVerifier.create(saveStream)
         verifier.assertNext {
             Assertions.assertEquals(mapOf(
                     "index" to "an_app_indexes",
-                    "documentId" to id.toString()
+                    "documentId" to idGenerator.generateId(document.metadataWithSystemMetadataFor((Storage("A_BUCKET"))))
             ), it)
         }
         verifier.verifyComplete()
@@ -51,14 +51,16 @@ internal class ESRepositoryTest {
         val verifier = StepVerifier.create(stream)
 
         verifier.assertNext {
+            println(it)
             Assertions.assertEquals(DocumentMetadataPage(listOf(
                     DocumentMetadata(
                             mapOf(
+                                    "randomizer" to randomizer,
                                     "prop1" to "A_VALUE",
                                     "prop2" to "ANOTHER_VALUE",
                                     "bucket" to "A_BUCKET",
-                                    "path" to "/a_path",
-                                    "fullQualifiedFilePath" to "/a_path/a_file.jpg",
+                                    "path" to "a_path",
+                                    "fullQualifiedFilePath" to "A_BUCKET/a_path/a_file.jpg",
                                     "fileName" to "a_file",
                                     "extension" to "jpg"
                             )

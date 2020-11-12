@@ -91,7 +91,9 @@ interface ESIdGenerator<T> {
 
 class DocumentMetadataEsIdGenerator() : ESIdGenerator<Map<String, String>> {
     override fun generateId(criteria: Map<String, String>): String {
-        return criteria["fullQualifiedFilePath"]!!.toSha256()
+        val toSha256 = criteria["fullQualifiedFilePath"]!!.toSha256()
+        println("DocumentMetadataEsIdGenerator: $toSha256")
+        return toSha256
     }
 
 }

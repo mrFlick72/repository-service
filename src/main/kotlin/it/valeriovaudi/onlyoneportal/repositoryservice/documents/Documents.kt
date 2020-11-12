@@ -10,8 +10,8 @@ data class Document(
 ) {
     companion object {
         fun fullQualifiedFilePathFor(path: Path, fileName: FileName) =
-                Document(Application(""),
-                        FileContent(fileName, FileContentType(""), ByteArray(0)),
+                Document(Application.empty(),
+                        FileContent(fileName, FileContentType.empty(), ByteArray(0)),
                         path,
                         DocumentMetadata.empty())
                         .fullQualifiedFilePath()
@@ -38,7 +38,12 @@ data class Document(
             "${listOf(storage.bucket, path.value, fileContent.fileName.name).filter { it.isNotBlank() }.joinToString("/")}.${fileContent.fileName.extension}"
 }
 
-data class Application(val value: String)
+
+data class Application(val value: String) {
+    companion object {
+        fun empty(): Application = Application("")
+    }
+}
 
 data class FileContent(val fileName: FileName, val contentType: FileContentType, val content: ByteArray) {
     override fun equals(other: Any?): Boolean {
@@ -61,6 +66,7 @@ data class FileContent(val fileName: FileName, val contentType: FileContentType,
         return result
     }
 }
+
 data class FileName(val name: String, val extension: String) {
     companion object {
         fun fileNameFrom(completeFileName: String): FileName {
@@ -72,7 +78,12 @@ data class FileName(val name: String, val extension: String) {
         }
     }
 }
-data class FileContentType(val value: String)
+
+data class FileContentType(val value: String) {
+    companion object {
+        fun empty(): FileContentType = FileContentType("")
+    }
+}
 
 data class Path(val value: String)
 

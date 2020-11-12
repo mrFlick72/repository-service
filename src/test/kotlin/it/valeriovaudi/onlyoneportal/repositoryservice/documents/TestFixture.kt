@@ -7,12 +7,6 @@ import java.util.*
 
 object TestFixture {
 
-    fun iGenerator(id: UUID) = object : ESIdGenerator<Map<String, String>> {
-        override fun generateId(criteria: Map<String, String>): String {
-            return id.toString()
-        }
-    }
-
     val testableApplicationStorageRepository = object : ApplicationStorageRepository {
         override fun storageConfigurationFor(application: Application): Optional<ApplicationStorageConfig> {
             if (application == Application("an_app")) {
