@@ -4,10 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.ApplicationStorageRepository
 import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.YamlApplicationStorageMapping
 import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.YamlApplicationStorageRepository
-import it.valeriovaudi.onlyoneportal.repositoryservice.documents.AWSCompositeDocumentRepository
-import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentUpdateEventSender
-import it.valeriovaudi.onlyoneportal.repositoryservice.documents.ESRepository
-import it.valeriovaudi.onlyoneportal.repositoryservice.documents.S3Repository
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.*
 import it.valeriovaudi.onlyoneportal.repositoryservice.time.Clock
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -15,7 +12,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.data.elasticsearch.core.ReactiveElasticsearchTemplate
-import org.springframework.util.SimpleIdGenerator
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
@@ -40,7 +36,7 @@ class RepositoryServiceApplication {
             AWSCompositeDocumentRepository(
                     Clock(),
                     S3Repository(s3Client),
-                    ESRepository(reactiveElasticsearchTemplate, applicationStorageRepository, SimpleIdGenerator()),
+                    ESRepository(reactiveElasticsearchTemplate, applicationStorageRepository, DocumentMetadataEsIdGenerator()),
                     DocumentUpdateEventSender(objectMapper, sqsAsyncClient, applicationStorageRepository),
                     applicationStorageRepository
             )

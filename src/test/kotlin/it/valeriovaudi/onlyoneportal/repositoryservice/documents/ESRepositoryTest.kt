@@ -1,11 +1,11 @@
 package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.TestFixture.iGenerator
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.TestFixture.testableApplicationStorageRepository
 import org.junit.jupiter.api.*
 import org.springframework.data.elasticsearch.client.ClientConfiguration.builder
 import org.springframework.data.elasticsearch.client.reactive.ReactiveRestClients.create
 import org.springframework.data.elasticsearch.core.ReactiveElasticsearchTemplate
-import org.springframework.util.IdGenerator
 import reactor.test.StepVerifier
 import java.util.*
 
@@ -18,7 +18,7 @@ internal class ESRepositoryTest {
     private val id = UUID.randomUUID()
 
     private val reactiveElasticsearchTemplate = template()
-    private val esRepository = ESRepository(reactiveElasticsearchTemplate, testableApplicationStorageRepository, IdGenerator { id })
+    private val esRepository = ESRepository(reactiveElasticsearchTemplate, testableApplicationStorageRepository, iGenerator(id))
 
     @Test
     @Order(1)

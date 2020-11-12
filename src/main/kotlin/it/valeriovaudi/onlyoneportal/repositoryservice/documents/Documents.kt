@@ -1,5 +1,31 @@
 package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 
+import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.Storage
+
+object DocumentHelper {
+    fun metadata(storage: Storage,
+                 path: Path,
+                 fileName: FileName,
+                 documentMetadata: DocumentMetadata) =
+            documentMetadata.content.plus(fileBasedMetadataFor(storage, path, fileName))
+
+
+    fun fileBasedMetadataFor(storage: Storage, path: Path, fileName: FileName): Map<String, String> =
+            mapOf(
+                    "fullQualifiedFilePath" to s3FullQualifiedFilePath(storage, path, fileName),
+                    "bucket" to storage.bucket,
+                    "path" to path.value,
+                    "fileName" to fileName.name,
+                    "extension" to fileName.extension
+            )
+
+    fun s3KeyFor(path: Path, fileName: FileName) =
+            "${listOf(path.value, fileName.name).filter { it.isNotBlank() }.joinToString("/")}.${fileName.extension}"
+
+    fun s3FullQualifiedFilePath(storage: Storage, path: Path, fileName: FileName) =
+            "${listOf(storage.bucket, path.value, fileName.name).filter { it.isNotBlank() }.joinToString("/")}.${fileName.extension}"
+}
+
 data class Application(val value: String)
 
 data class DocumentMetadataPage(val documents: List<DocumentMetadata>, val page: Int, val pageSize: Int)

@@ -1,7 +1,7 @@
 package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 
 import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.ApplicationStorageRepository
-import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.Storage
+import it.valeriovaudi.onlyoneportal.repositoryservice.extentions.toSha256
 import org.elasticsearch.action.index.IndexRequest
 import org.elasticsearch.action.index.IndexResponse
 import org.elasticsearch.action.search.SearchRequest
@@ -12,15 +12,13 @@ import org.elasticsearch.search.SearchHit
 import org.elasticsearch.search.builder.SearchSourceBuilder.searchSource
 import org.reactivestreams.Publisher
 import org.springframework.data.elasticsearch.core.ReactiveElasticsearchTemplate
-import org.springframework.util.IdGenerator
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 
-
 class ESRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsearchTemplate,
                    private val applicationStorageRepository: ApplicationStorageRepository,
-                   private val idGenerator: IdGenerator) {
+                   private val idGenerator: ESIdGenerator<Map<String,String>>) {
 
     //*********************** WRITE FUNCTION ***************************************************************************
 
@@ -45,29 +43,13 @@ class ESRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsea
                                 documentMetadata: DocumentMetadata): (IndexRequest) -> Unit = { indexRequest ->
         applicationStorageRepository.storageConfigurationFor(application)
                 .map {
+                    val metadata = DocumentHelper.metadata(it.storage, path, fileName, documentMetadata)
                     indexRequest.index(indexNameFor(application))
-                            .source(metadata(it.storage, path, fileName, documentMetadata))
-                            .id(idGenerator.generateId().toString())
+                            .source(metadata)
+                            .id(idGenerator.generateId(metadata))
                             .setRefreshPolicy(RefreshPolicy.IMMEDIATE)
-                            .create(true)
                 }
     }
-
-    private fun metadata(storage: Storage,
-                 path: Path,
-                 fileName: FileName,
-                 documentMetadata: DocumentMetadata) =
-            documentMetadata.content.plus(fileBasedMetadataFor(storage, path, fileName))
-
-
-    private fun fileBasedMetadataFor(storage: Storage, path: Path, fileName: FileName): Map<String, String> =
-            mapOf(
-                    "fullQualifiedFilePath" to S3Repository.s3KeyFor(path, fileName),
-                    "bucket" to storage.bucket,
-                    "path" to path.value,
-                    "fileName" to fileName.name,
-                    "extension" to fileName.extension
-            )
 
     //*********************** READ FUNCTION ****************************************************************************
 
@@ -102,5 +84,17 @@ class ESRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsea
 
     private fun adaptDocument(it: SearchHit) =
             DocumentMetadata(it.sourceAsMap.mapValues { entry -> entry.value.toString() })
+
+}
+
+interface ESIdGenerator<T> {
+
+    fun generateId(criteria: T): String
+}
+
+class DocumentMetadataEsIdGenerator() : ESIdGenerator<Map<String,String>> {
+    override fun generateId(criteria: Map<String,String>): String {
+        return criteria["fullQualifiedFilePath"]!!.toSha256()
+    }
 
 }
