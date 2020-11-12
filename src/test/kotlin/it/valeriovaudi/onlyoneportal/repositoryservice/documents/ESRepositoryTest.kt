@@ -24,10 +24,13 @@ internal class ESRepositoryTest {
     @Order(1)
     internal fun `save a document on es`() {
         val saveStream = esRepository.save(
-                Application("an_app"),
-                Path("/a_path"),
-                FileName("a_file", "jpg"),
-                DocumentMetadata(mapOf("prop1" to "A_VALUE", "prop2" to "ANOTHER_VALUE"))
+                Document(
+                        Application("an_app"),
+                        FileContent(FileName("a_file", "jpg"), FileContentType(""), ByteArray(0)),
+                        Path("/a_path"),
+                        DocumentMetadata(mapOf("prop1" to "A_VALUE", "prop2" to "ANOTHER_VALUE")
+                        )
+                )
         )
 
         val verifier = StepVerifier.create(saveStream)

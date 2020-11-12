@@ -18,12 +18,12 @@ import reactor.kotlin.core.publisher.toMono
 
 class ESRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsearchTemplate,
                    private val applicationStorageRepository: ApplicationStorageRepository,
-                   private val idGenerator: ESIdGenerator<Map<String,String>>) {
+                   private val idGenerator: ESIdGenerator<Map<String, String>>) {
 
     //*********************** WRITE FUNCTION ***************************************************************************
 
-    fun save(application: Application, path: Path, fileName: FileName, documentMetadata: DocumentMetadata) =
-            saveOnEsFor(application, path, fileName, documentMetadata)
+    fun save(document: Document) =
+            saveOnEsFor(document)
                     .toMono()
                     .map(::extractIndexIdFor)
 
@@ -31,20 +31,17 @@ class ESRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsea
     private fun extractIndexIdFor(documentMetadata: IndexResponse): Map<String, String> =
             mapOf("index" to documentMetadata.index, "documentId" to documentMetadata.id)
 
-    private fun saveOnEsFor(application: Application, path: Path, fileName: FileName, documentMetadata: DocumentMetadata): Publisher<IndexResponse> {
+    private fun saveOnEsFor(document: Document): Publisher<IndexResponse> {
         return reactiveElasticsearchTemplate.execute { client ->
-            client.index(indexRequestFor(application, path, fileName, documentMetadata))
+            client.index(indexRequestFor(document))
         }
     }
 
-    private fun indexRequestFor(application: Application,
-                                path: Path,
-                                fileName: FileName,
-                                documentMetadata: DocumentMetadata): (IndexRequest) -> Unit = { indexRequest ->
-        applicationStorageRepository.storageConfigurationFor(application)
+    private fun indexRequestFor(document: Document): (IndexRequest) -> Unit = { indexRequest ->
+        applicationStorageRepository.storageConfigurationFor(document.application)
                 .map {
-                    val metadata = DocumentHelper.metadata(it.storage, path, fileName, documentMetadata)
-                    indexRequest.index(indexNameFor(application))
+                    val metadata = document.metadataWithSystemMetadataFor(it.storage)
+                    indexRequest.index(indexNameFor(document.application))
                             .source(metadata)
                             .id(idGenerator.generateId(metadata))
                             .setRefreshPolicy(RefreshPolicy.IMMEDIATE)
@@ -92,8 +89,8 @@ interface ESIdGenerator<T> {
     fun generateId(criteria: T): String
 }
 
-class DocumentMetadataEsIdGenerator() : ESIdGenerator<Map<String,String>> {
-    override fun generateId(criteria: Map<String,String>): String {
+class DocumentMetadataEsIdGenerator() : ESIdGenerator<Map<String, String>> {
+    override fun generateId(criteria: Map<String, String>): String {
         return criteria["fullQualifiedFilePath"]!!.toSha256()
     }
 

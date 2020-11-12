@@ -50,15 +50,14 @@ class DocumentEndPoint(private val documentRepository: DocumentRepository) {
                         Mono.zip(path, file, fileContent, metadata)
                     }.map { t ->
                         val filePart = t.t2
-                        Triple(t.t1,
-                                FileContent(
-                                        fileName = FileName.fileNameFrom(filePart.filename()),
-                                        contentType = FileContentType(filePart.headers().contentType.toString()),
-                                        content = t.t3.asInputStream().readAllBytes()
-                                ),
+                        Triple(FileContent(
+                                fileName = FileName.fileNameFrom(filePart.filename()),
+                                contentType = FileContentType(filePart.headers().contentType.toString()),
+                                content = t.t3.asInputStream().readAllBytes()
+                        ), t.t1,
                                 t.t4
                         )
-                    }.flatMap { documentRepository.saveDocumentFor(application, it.first, it.second, DocumentMetadata(it.third)) }
+                    }.flatMap { documentRepository.saveDocumentFor(Document(application, it.first, it.second, DocumentMetadata(it.third))) }
                             .flatMap { noContent().build() }
                 }
             }

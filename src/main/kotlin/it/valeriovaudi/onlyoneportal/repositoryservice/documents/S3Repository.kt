@@ -14,14 +14,14 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest
 
 class S3Repository(private val s3Client: S3AsyncClient) {
 
-    fun putOnS3(storage: Storage, path: Path, content: FileContent, metadata: DocumentMetadata = DocumentMetadata.empty()): Mono<Unit> {
+    fun putOnS3(storage: Storage, document: Document): Mono<Unit> {
         return Mono.fromCompletionStage {
             s3Client.putObject(PutObjectRequest.builder()
                     .bucket(storage.bucket)
-                    .metadata(DocumentHelper.metadata(storage, path, content.fileName, metadata))
-                    .key(s3KeyFor(path, content.fileName))
+                    .metadata(DocumentHelper.metadata(storage, document.path, document.fileContent.fileName, document.documentMetadata))
+                    .key(document.fullQualifiedFilePath())
                     .build(),
-                    AsyncRequestBody.fromBytes(content.content))
+                    AsyncRequestBody.fromBytes(document.fileContent.content))
         }.flatMap { Mono.just(Unit) }
     }
 

@@ -8,7 +8,8 @@ interface DocumentRepository {
 
     fun findOneDocumentFor(application: Application, path: Path, fileName: FileName): Mono<FileContent>
 
-    fun saveDocumentFor(application: Application, path: Path, content: FileContent, documentMetadata: DocumentMetadata = DocumentMetadata.empty()): Mono<Unit>
+
+    fun saveDocumentFor(document: Document): Mono<Unit>
 
 }
 
@@ -25,12 +26,13 @@ class AWSCompositeDocumentRepository(private val clock: Clock,
                     .orElse(Mono.empty())
                     .map { FileContent(fileName, FileContentType(it.response().contentType()), it.asByteArray()) }
 
-    override fun saveDocumentFor(application: Application, path: Path, content: FileContent, documentMetadata: DocumentMetadata) =
-            applicationStorageRepository.storageConfigurationFor(application)
+
+    override fun saveDocumentFor(document: Document) =
+            applicationStorageRepository.storageConfigurationFor(document.application)
                     .map { Mono.just(it.storage) }
                     .orElse(Mono.empty())
-                    .flatMap { s3Repository.putOnS3(it, path, content, documentMetadata) }
-                    .flatMap { esRepository.save(application, path, content.fileName, documentMetadata) }
-                    .flatMap { sqsEventSenderDocument.publishEventFor(StorageUpdateEvent(application, path, content.fileName, clock.now())) }
+                    .flatMap { s3Repository.putOnS3(it, document) }
+                    .flatMap { esRepository.save(document) }
+                    .flatMap { sqsEventSenderDocument.publishEventFor(StorageUpdateEvent(document.application, document.path, document.fileContent.fileName, clock.now())) }
                     .flatMap { Mono.just(Unit) }
 }

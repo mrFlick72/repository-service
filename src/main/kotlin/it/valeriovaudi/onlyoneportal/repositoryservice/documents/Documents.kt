@@ -2,6 +2,32 @@ package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 
 import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.Storage
 
+data class Document(
+        val application: Application,
+        val fileContent: FileContent,
+        val path: Path,
+        val documentMetadata: DocumentMetadata
+) {
+    fun metadataWithSystemMetadataFor(storage: Storage) =
+            documentMetadata.content.plus(fileBasedMetadataFor(storage, path, fileContent.fileName))
+
+
+    private fun fileBasedMetadataFor(storage: Storage, path: Path, fileName: FileName): Map<String, String> =
+            mapOf(
+                    "fullQualifiedFilePath" to fullQualifiedFilePathFor(storage),
+                    "bucket" to storage.bucket,
+                    "path" to path.value,
+                    "fileName" to fileName.name,
+                    "extension" to fileName.extension
+            )
+
+    fun fullQualifiedFilePath() =
+            "${listOf(path.value, fileContent.fileName.name).filter { it.isNotBlank() }.joinToString("/")}.${fileContent.fileName.extension}"
+
+    fun fullQualifiedFilePathFor(storage: Storage) =
+            "${listOf(storage.bucket, path.value, fileContent.fileName.name).filter { it.isNotBlank() }.joinToString("/")}.${fileContent.fileName.extension}"
+}
+
 object DocumentHelper {
     fun metadata(storage: Storage,
                  path: Path,
