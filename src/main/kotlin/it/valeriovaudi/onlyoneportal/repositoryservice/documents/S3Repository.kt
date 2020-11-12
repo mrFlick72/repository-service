@@ -1,7 +1,7 @@
 package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 
 import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.Storage
-import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentHelper.s3KeyFor
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.Document.Companion.fullQualifiedFilePathFor
 import reactor.core.publisher.Mono
 import software.amazon.awssdk.core.ResponseBytes
 import software.amazon.awssdk.core.async.AsyncRequestBody
@@ -18,7 +18,7 @@ class S3Repository(private val s3Client: S3AsyncClient) {
         return Mono.fromCompletionStage {
             s3Client.putObject(PutObjectRequest.builder()
                     .bucket(storage.bucket)
-                    .metadata(DocumentHelper.metadata(storage, document.path, document.fileContent.fileName, document.documentMetadata))
+                    .metadata(document.metadataWithSystemMetadataFor(storage))
                     .key(document.fullQualifiedFilePath())
                     .build(),
                     AsyncRequestBody.fromBytes(document.fileContent.content))
@@ -29,7 +29,7 @@ class S3Repository(private val s3Client: S3AsyncClient) {
         return Mono.fromCompletionStage {
             s3Client.getObject(GetObjectRequest.builder()
                     .bucket(storage.bucket)
-                    .key(s3KeyFor(path, fileName))
+                    .key(fullQualifiedFilePathFor(path, fileName))
                     .build(),
                     AsyncResponseTransformer.toBytes())
         }
