@@ -59,7 +59,7 @@ class DocumentEndPoint(private val documentRepository: DocumentRepository) {
                     val fileName = it.queryParamExtractor("fileName")
                     val fileExtension = it.queryParamExtractor("fileExt")
                     val path = it.queryParamExtractor("path", Path::class.java)
-                    val application = it.queryParamExtractor("application")
+                    val application = it.pathVariable("application")
 
                     documentRepository.findOneDocumentFor(Application(application), path, FileName(fileName, fileExtension)
                     ).flatMap { fileContent ->

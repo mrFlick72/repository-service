@@ -7,5 +7,5 @@ fun ServerRequest.queryParamExtractor(paramName: String, defaultValue: String = 
 
 fun <T> ServerRequest.queryParamExtractor(paramName: String, clazz: Class<T>): T =
         this.queryParam(paramName)
-                .map { clazz.getDeclaredConstructor().newInstance(it) }.orElse(clazz.getDeclaredConstructor().newInstance(""))
+                    .map { clazz.getDeclaredConstructor(String::class.java).newInstance(it) }.orElse(clazz.getDeclaredConstructor(String::class.java).newInstance(""))
 

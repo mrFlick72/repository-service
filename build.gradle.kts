@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "2.3.5.RELEASE"
+    id("org.springframework.boot") version "2.3.6.RELEASE"
     id("io.spring.dependency-management") version "1.0.10.RELEASE"
     id("com.palantir.docker") version "0.25.0"
 
