@@ -49,13 +49,11 @@ class DocumentEndPoint(private val documentRepository: DocumentRepository) {
 
                 PUT("/documents/{application}") {
                     val application = Application(it.pathVariable("application"))
-                    println("application: " + application)
-
                     val queryAsMap = it.body(BodyExtractors.toMono(Map::class.java))
 
                     queryAsMap.flatMap { query ->
                         println(query); documentRepository.findDocumentsFor(application, DocumentMetadata(query as Map<String, String>))
-                    }.flatMap {documentPage -> println(documentPage); ServerResponse.ok().body(BodyInserters.fromValue(documentPage)) }
+                    }.flatMap { documentPage -> println(documentPage); ServerResponse.ok().body(BodyInserters.fromValue(documentPage)) }
 
                 }
 
@@ -73,7 +71,5 @@ class DocumentEndPoint(private val documentRepository: DocumentRepository) {
                                 .body(BodyInserters.fromValue(fileContent.content))
                     }.switchIfEmpty(notFound().build())
                 }
-
-
             }
 }

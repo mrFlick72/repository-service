@@ -16,8 +16,8 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.elasticsearch.core.ReactiveElasticsearchTemplate
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
-
 
 class ESRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsearchTemplate,
                    private val applicationStorageRepository: ApplicationStorageRepository,
@@ -59,10 +59,11 @@ class ESRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsea
     fun find(application: Application, documentMetadata: DocumentMetadata, page: Int = 0, size: Int = 10): Mono<DocumentMetadataPage> {
         return Flux.just(QueryBuilders.boolQuery())
                 .map { boolQueryBuilder(documentMetadata, it) }
-                .flatMap { findFromEsFor(application, it, page, size) }
-                .map(this::adaptDocument)
-                .collectList()
-                .map { DocumentMetadataPage(it, page, size, 0) }
+                .flatMap {
+                    findFromEsFor(application, it, page, size).toFlux().map(this::adaptDocument).collectList()
+                            .zipWith(countFromEsFor(application, it).toMono())
+                }.toMono()
+                .map { DocumentMetadataPage(it.t1, page, size, it.t2) }
     }
 
     private fun boolQueryBuilder(documentMetadata: DocumentMetadata, builder: BoolQueryBuilder): BoolQueryBuilder {
@@ -77,10 +78,25 @@ class ESRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsea
         }
     }
 
-    private fun searchRequestFor(application: Application, it: BoolQueryBuilder?, page: Int, size: Int): (SearchRequest) -> Unit {
+    private fun searchRequestFor(application: Application, it: BoolQueryBuilder, page: Int, size: Int): (SearchRequest) -> Unit {
         return { searchRequest ->
             searchRequest.indices(indexNameFor(application))
                     .source(searchSource().query(it).from(page).size(size))
+        }
+    }
+
+    private fun countFromEsFor(application: Application, queryBuilder: BoolQueryBuilder): Publisher<Int> {
+        return reactiveElasticsearchTemplate.execute { client ->
+            logger.debug("query:\n$queryBuilder")
+            client.count(searchRequestFor(application, queryBuilder))
+                    .map { it.toInt() }
+        }
+    }
+
+    private fun searchRequestFor(application: Application, it: BoolQueryBuilder): (SearchRequest) -> Unit {
+        return { searchRequest ->
+            searchRequest.indices(indexNameFor(application))
+                    .source(searchSource().query(it))
         }
     }
 
@@ -88,7 +104,6 @@ class ESRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsea
 
     private fun adaptDocument(it: SearchHit) =
             DocumentMetadata(it.sourceAsMap.mapValues { entry -> entry.value.toString() })
-
 }
 
 interface ESIdGenerator<T> {
@@ -97,10 +112,9 @@ interface ESIdGenerator<T> {
 }
 
 class DocumentMetadataEsIdGenerator() : ESIdGenerator<Map<String, String>> {
-    override fun generateId(criteria: Map<String, String>): String {
-        val toSha256 = criteria["fullQualifiedFilePath"]!!.toSha256()
-        println("DocumentMetadataEsIdGenerator: $toSha256")
-        return toSha256
-    }
+    override fun generateId(criteria: Map<String, String>): String =
+            criteria.getOrElse("fullQualifiedFilePath") {
+                throw RuntimeException("fullQualifiedFilePath field not present as metadata it is required")
+            }.toSha256()
 
 }
