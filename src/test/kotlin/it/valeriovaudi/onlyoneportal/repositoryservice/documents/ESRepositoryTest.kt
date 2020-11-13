@@ -66,8 +66,7 @@ internal class ESRepositoryTest {
                             )
                     )
             ),
-                    0, 10
-
+                    0, 10, 1
             ), it)
         }
         verifier.verifyComplete()
