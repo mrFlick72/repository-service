@@ -1,11 +1,21 @@
 version: 2.1
 
-jobs:
-  build:
+workflows:
+  build-master:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only:
+                - master
+
+executors:
+  machine-executor:
     machine:
       image: ubuntu-2004:202008-01
-      docker_layer_caching: true
-
+jobs:
+  build:
+    executor: machine-executor
     steps:
       - run:
           name: Install OpenJDK 11
@@ -17,6 +27,13 @@ jobs:
 
       - checkout
 
+      - run:
+          name: start docker compose for test
+          command: |
+            cd src/test/resources
+            docker-compose up &
+            sleep 30s
+
       - run: ./gradlew build
 
       - run:
@@ -24,4 +41,3 @@ jobs:
           command: |
             docker login -u $DOCKER_HUB_USERNAME -p $DOCKER_HUB_PASSWORD
             ./gradlew docker dockerPush
-

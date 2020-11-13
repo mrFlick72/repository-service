@@ -1,6 +1,7 @@
 package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 
 import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.Storage
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.Document.Companion.fullQualifiedFilePathFor
 import reactor.core.publisher.Mono
 import software.amazon.awssdk.core.ResponseBytes
 import software.amazon.awssdk.core.async.AsyncRequestBody
@@ -12,26 +13,27 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest
 
 
 class S3Repository(private val s3Client: S3AsyncClient) {
-    fun putOnS3(storage: Storage, path: Path, content: FileContent): Mono<Unit> {
+
+    fun save(storage: Storage, document: Document): Mono<Unit> {
         return Mono.fromCompletionStage {
             s3Client.putObject(PutObjectRequest.builder()
                     .bucket(storage.bucket)
-                    .key(s3KeyFor(path, content.fileName))
+                    .metadata(document.metadataWithSystemMetadataFor(storage))
+                    .key(document.fullQualifiedFilePath())
                     .build(),
-                    AsyncRequestBody.fromBytes(content.content))
+                    AsyncRequestBody.fromBytes(document.fileContent.content))
         }.flatMap { Mono.just(Unit) }
     }
 
-    fun getFromS3(storage: Storage, path: Path, fileName: FileName): Mono<ResponseBytes<GetObjectResponse>> {
+    fun find(storage: Storage, path: Path, fileName: FileName): Mono<ResponseBytes<GetObjectResponse>> {
         return Mono.fromCompletionStage {
             s3Client.getObject(GetObjectRequest.builder()
                     .bucket(storage.bucket)
-                    .key(s3KeyFor(path, fileName))
+                    .key(fullQualifiedFilePathFor(path, fileName))
                     .build(),
                     AsyncResponseTransformer.toBytes())
         }
     }
 
-    private fun s3KeyFor(path: Path, fileName: FileName) =
-            "${listOf(path.value, fileName.name).filter { it.isNotBlank() }.joinToString("/")}.${fileName.extension}"
+
 }

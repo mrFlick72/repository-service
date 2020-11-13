@@ -8,27 +8,34 @@ interface DocumentRepository {
 
     fun findOneDocumentFor(application: Application, path: Path, fileName: FileName): Mono<FileContent>
 
-    fun saveDocumentFor(application: Application, path: Path, content: FileContent): Mono<Unit>
+    fun findDocumentsFor(application: Application, documentMetadata: DocumentMetadata): Mono<DocumentMetadataPage>
+
+    fun saveDocumentFor(document: Document): Mono<Unit>
 
 }
 
 class AWSCompositeDocumentRepository(private val clock: Clock,
                                      private val s3Repository: S3Repository,
+                                     private val esRepository: ESRepository,
                                      private val sqsEventSenderDocument: DocumentUpdateEventSender,
                                      private val applicationStorageRepository: ApplicationStorageRepository) : DocumentRepository {
 
     override fun findOneDocumentFor(application: Application, path: Path, fileName: FileName): Mono<FileContent> =
             applicationStorageRepository.storageConfigurationFor(application)
                     .map { it.storage }
-                    .map { storage -> s3Repository.getFromS3(storage, path, fileName) }
+                    .map { storage -> s3Repository.find(storage, path, fileName) }
                     .orElse(Mono.empty())
                     .map { FileContent(fileName, FileContentType(it.response().contentType()), it.asByteArray()) }
 
-    override fun saveDocumentFor(application: Application, path: Path, content: FileContent) =
-            applicationStorageRepository.storageConfigurationFor(application)
+    override fun findDocumentsFor(application: Application, documentMetadata: DocumentMetadata): Mono<DocumentMetadataPage> =
+            esRepository.find(application, documentMetadata)
+
+    override fun saveDocumentFor(document: Document) =
+            applicationStorageRepository.storageConfigurationFor(document.application)
                     .map { Mono.just(it.storage) }
                     .orElse(Mono.empty())
-                    .flatMap { s3Repository.putOnS3(it, path, content) }
-                    .flatMap { sqsEventSenderDocument.publishEventFor(StorageUpdateEvent(application, path, content.fileName, clock.now())) }
+                    .flatMap { s3Repository.save(it, document) }
+                    .flatMap { esRepository.save(document) }
+                    .flatMap { sqsEventSenderDocument.publishEventFor(StorageUpdateEvent(document.application, document.path, document.fileContent.fileName, clock.now())) }
                     .flatMap { Mono.just(Unit) }
 }
