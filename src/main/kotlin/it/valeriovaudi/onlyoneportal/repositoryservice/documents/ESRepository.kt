@@ -11,14 +11,19 @@ import org.elasticsearch.index.query.QueryBuilders
 import org.elasticsearch.search.SearchHit
 import org.elasticsearch.search.builder.SearchSourceBuilder.searchSource
 import org.reactivestreams.Publisher
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.data.elasticsearch.core.ReactiveElasticsearchTemplate
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 
+
 class ESRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsearchTemplate,
                    private val applicationStorageRepository: ApplicationStorageRepository,
                    private val idGenerator: ESIdGenerator<Map<String, String>>) {
+
+    private val logger: Logger = LoggerFactory.getLogger(ESRepository::class.java)
 
     //*********************** WRITE FUNCTION ***************************************************************************
 
@@ -57,7 +62,7 @@ class ESRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsea
                 .flatMap { findFromEsFor(application, it, page, size) }
                 .map(this::adaptDocument)
                 .collectList()
-                .map { DocumentMetadataPage(it, page, size) }
+                .map { DocumentMetadataPage(it, page, size, 0) }
     }
 
     private fun boolQueryBuilder(documentMetadata: DocumentMetadata, builder: BoolQueryBuilder): BoolQueryBuilder {
@@ -67,7 +72,7 @@ class ESRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsea
 
     private fun findFromEsFor(application: Application, queryBuilder: BoolQueryBuilder, page: Int, size: Int): Publisher<SearchHit> {
         return reactiveElasticsearchTemplate.execute { client ->
-            println("query:\n$queryBuilder")
+            logger.debug("query:\n$queryBuilder")
             client.search(searchRequestFor(application, queryBuilder, page, size))
         }
     }

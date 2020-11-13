@@ -96,4 +96,4 @@ data class DocumentMetadata(val content: Map<String, String>) {
 typealias UserDocumentMetadata = DocumentMetadata
 
 
-data class DocumentMetadataPage(val documents: List<DocumentMetadata>, val page: Int, val pageSize: Int)
+data class DocumentMetadataPage(val documents: List<DocumentMetadata>, val page: Int, val pageSize: Int, val total: Int)

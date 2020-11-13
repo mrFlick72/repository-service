@@ -8,6 +8,7 @@ interface DocumentRepository {
 
     fun findOneDocumentFor(application: Application, path: Path, fileName: FileName): Mono<FileContent>
 
+    fun findDocumentsFor(application: Application, documentMetadata: DocumentMetadata): Mono<DocumentMetadataPage>
 
     fun saveDocumentFor(document: Document): Mono<Unit>
 
@@ -26,6 +27,8 @@ class AWSCompositeDocumentRepository(private val clock: Clock,
                     .orElse(Mono.empty())
                     .map { FileContent(fileName, FileContentType(it.response().contentType()), it.asByteArray()) }
 
+    override fun findDocumentsFor(application: Application, documentMetadata: DocumentMetadata): Mono<DocumentMetadataPage> =
+            esRepository.find(application, documentMetadata)
 
     override fun saveDocumentFor(document: Document) =
             applicationStorageRepository.storageConfigurationFor(document.application)
