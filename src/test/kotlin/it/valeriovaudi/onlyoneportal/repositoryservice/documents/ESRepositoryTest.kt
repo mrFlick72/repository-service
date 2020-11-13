@@ -7,7 +7,7 @@ import org.springframework.data.elasticsearch.client.ClientConfiguration.builder
 import org.springframework.data.elasticsearch.client.reactive.ReactiveRestClients.create
 import org.springframework.data.elasticsearch.core.ReactiveElasticsearchTemplate
 import reactor.test.StepVerifier
-import java.util.*
+import java.time.LocalDate
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 internal class ESRepositoryTest {
@@ -15,7 +15,7 @@ internal class ESRepositoryTest {
     private fun template(): ReactiveElasticsearchTemplate =
             ReactiveElasticsearchTemplate(create(builder().connectedTo("localhost:39200").build()))
 
-    private val randomizer = UUID.randomUUID().toString()
+    private val randomizer = LocalDate.now().toEpochDay().toString()
 
     private val reactiveElasticsearchTemplate = template()
     val idGenerator = DocumentMetadataEsIdGenerator()
@@ -47,7 +47,7 @@ internal class ESRepositoryTest {
     @Order(2)
     internal fun `get a document on ES`() {
         val stream = esRepository.find(Application("an_app"),
-                DocumentMetadata(mapOf("prop1" to "A_VALUE")))
+                DocumentMetadata(mapOf("prop1" to "A_VALUE", "randomizer" to randomizer)))
         val verifier = StepVerifier.create(stream)
 
         verifier.assertNext {

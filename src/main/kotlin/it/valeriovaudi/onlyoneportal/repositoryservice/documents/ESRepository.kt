@@ -61,12 +61,14 @@ class ESRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsea
     }
 
     private fun boolQueryBuilder(documentMetadata: DocumentMetadata, builder: BoolQueryBuilder): BoolQueryBuilder {
-        documentMetadata.content.map { entry -> builder.should(QueryBuilders.matchQuery(entry.key, entry.value)) }; return builder
+        documentMetadata.content.map { entry -> builder.must(QueryBuilders.matchQuery(entry.key, entry.value)) };
+        return builder
     }
 
-    private fun findFromEsFor(application: Application, it: BoolQueryBuilder?, page: Int, size: Int): Publisher<SearchHit> {
+    private fun findFromEsFor(application: Application, queryBuilder: BoolQueryBuilder, page: Int, size: Int): Publisher<SearchHit> {
         return reactiveElasticsearchTemplate.execute { client ->
-            client.search(searchRequestFor(application, it, page, size))
+            println("query:\n$queryBuilder")
+            client.search(searchRequestFor(application, queryBuilder, page, size))
         }
     }
 

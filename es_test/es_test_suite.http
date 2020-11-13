@@ -1,1 +1,32 @@
 GET http://localhost:9200/_search
+
+###
+
+POST http://localhost:9200/_search
+Content-Type: application/json
+
+{
+  "query": {
+    "bool": {
+      "should": [
+        {
+          "match": {
+            "randomizer": {
+              "query": "32d7eb53-d472-45aa-8308-1ce4e6f771c7",
+              "operator": "OR",
+              "prefix_length": 0,
+              "max_expansions": 50,
+              "fuzzy_transpositions": true,
+              "lenient": false,
+              "zero_terms_query": "NONE",
+              "auto_generate_synonyms_phrase_query": true,
+              "boost": 1.0
+            }
+          }
+        }
+      ],
+      "adjust_pure_negative": true,
+      "boost": 1.0
+    }
+  }
+}
