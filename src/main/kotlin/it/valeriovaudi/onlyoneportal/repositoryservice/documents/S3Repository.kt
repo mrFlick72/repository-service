@@ -17,6 +17,7 @@ class S3Repository(private val s3Client: S3AsyncClient) {
     fun save(storage: Storage, document: Document): Mono<Unit> {
         return Mono.fromCompletionStage {
             s3Client.putObject(PutObjectRequest.builder()
+                    .contentType(document.fileContent.contentType.value)
                     .bucket(storage.bucket)
                     .metadata(document.metadataWithSystemMetadataFor(storage))
                     .key(document.fullQualifiedFilePath())
