@@ -29,18 +29,17 @@ class ESRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsea
 
     fun save(document: Document) =
             saveOnEsFor(document)
-                    .toMono()
                     .map(::extractIndexIdFor)
 
 
     private fun extractIndexIdFor(documentMetadata: IndexResponse): Map<String, String> =
             mapOf("index" to documentMetadata.index, "documentId" to documentMetadata.id)
 
-    private fun saveOnEsFor(document: Document): Publisher<IndexResponse> {
-        return reactiveElasticsearchTemplate.execute { client ->
-            client.index(indexRequestFor(document))
-        }
-    }
+    private fun saveOnEsFor(document: Document): Mono<IndexResponse> =
+            reactiveElasticsearchTemplate.execute { client ->
+                client.index(indexRequestFor(document))
+            }.toMono()
+
 
     private fun indexRequestFor(document: Document): (IndexRequest) -> Unit = { indexRequest ->
         applicationStorageRepository.storageConfigurationFor(document.application)
@@ -54,7 +53,6 @@ class ESRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsea
     }
 
     //*********************** READ FUNCTION ****************************************************************************
-
 
     fun find(application: Application, documentMetadata: DocumentMetadata, page: Int = 0, size: Int = 10): Mono<DocumentMetadataPage> {
         return Flux.just(QueryBuilders.boolQuery())
@@ -104,6 +102,23 @@ class ESRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsea
 
     private fun adaptDocument(it: SearchHit) =
             DocumentMetadata(it.sourceAsMap.mapValues { entry -> entry.value.toString() })
+
+
+    ////////////////////// DELETE /////////////////
+
+    fun delete(document: Document): Mono<Unit> =
+            deleteIndexRequestFor(document)
+                    .flatMap { Mono.just(Unit) }
+
+
+    private fun deleteIndexRequestFor(document: Document) =
+            reactiveElasticsearchTemplate.execute { client ->
+                client.delete { deleteRequest ->
+                    deleteRequest.index(indexNameFor(document.application))
+                            .id(idGenerator.generateId(document.userDocumentMetadata.content))
+                }
+            }.toMono()
+
 }
 
 interface ESIdGenerator<T> {

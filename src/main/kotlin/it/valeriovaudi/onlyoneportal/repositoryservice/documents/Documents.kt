@@ -16,6 +16,12 @@ data class Document(
                         DocumentMetadata.empty())
                         .fullQualifiedFilePath()
 
+        fun from(application: Application, path: Path, fileName: FileName): Document =
+                Document(application,
+                        FileContent(fileName, FileContentType.empty(), ByteArray(0)),
+                        path,
+                        DocumentMetadata.empty())
+
     }
 
     fun metadataWithSystemMetadataFor(storage: Storage) =

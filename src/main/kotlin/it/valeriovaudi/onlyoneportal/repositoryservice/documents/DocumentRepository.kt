@@ -12,6 +12,8 @@ interface DocumentRepository {
 
     fun saveDocumentFor(document: Document): Mono<Unit>
 
+    fun deleteDocumentFor(application: Application, path: Path, fileName: FileName): Mono<Unit>
+
 }
 
 class AWSCompositeDocumentRepository(private val clock: Clock,
@@ -38,4 +40,13 @@ class AWSCompositeDocumentRepository(private val clock: Clock,
                     .flatMap { esRepository.save(document) }
                     .flatMap { sqsEventSenderDocument.publishEventFor(StorageUpdateEvent(document.application, document.path, document.fileContent.fileName, clock.now())) }
                     .flatMap { Mono.just(Unit) }
+
+    override fun deleteDocumentFor(application: Application, path: Path, fileName: FileName): Mono<Unit> =
+            applicationStorageRepository.storageConfigurationFor(application)
+                    .map { Mono.just(it.storage) }
+                    .orElse(Mono.empty())
+                    .flatMap { storage -> s3Repository.delete(storage, path, fileName) }
+                    .flatMap { esRepository.delete(Document.from(application, path, fileName))}
+                    .flatMap { Mono.just(Unit) }
+
 }

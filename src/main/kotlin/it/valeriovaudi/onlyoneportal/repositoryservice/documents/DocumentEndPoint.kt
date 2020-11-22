@@ -49,7 +49,7 @@ class DocumentEndPoint(private val documentRepository: DocumentRepository) {
                     val application = Application(it.pathVariable("application"))
                     val queryAsMap = it.body(BodyExtractors.toMono(Map::class.java))
 
-                    queryAsMap.flatMap { query-> documentRepository.findDocumentsFor(application, DocumentMetadata(query as Map<String, String>)) }
+                    queryAsMap.flatMap { query -> documentRepository.findDocumentsFor(application, DocumentMetadata(query as Map<String, String>)) }
                             .map(::fromDomainToRepresentation)
                             .flatMap { representation -> ok().body(fromValue(representation)) }
 
@@ -68,6 +68,17 @@ class DocumentEndPoint(private val documentRepository: DocumentRepository) {
                                 .contentType(MediaType.valueOf(fileContent.contentType.value))
                                 .body(fromValue(fileContent.content))
                     }.switchIfEmpty(notFound().build())
+                }
+
+                DELETE("/documents/{application}") {
+                    val fileName = it.queryParamExtractor("fileName")
+                    val fileExtension = it.queryParamExtractor("fileExt")
+                    val path = it.queryParamExtractor("path", Path::class.java)
+                    val application = it.pathVariable("application")
+
+                    documentRepository.deleteDocumentFor(Application(application), path, FileName(fileName, fileExtension)
+                    ).flatMap { noContent().build() }
+                            .switchIfEmpty(notFound().build())
                 }
             }
 }
