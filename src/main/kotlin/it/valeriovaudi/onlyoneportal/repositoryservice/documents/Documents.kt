@@ -16,11 +16,17 @@ data class Document(
                         DocumentMetadata.empty())
                         .fullQualifiedFilePath()
 
-        fun from(application: Application, path: Path, fileName: FileName): Document =
-                Document(application,
-                        FileContent(fileName, FileContentType.empty(), ByteArray(0)),
-                        path,
-                        DocumentMetadata.empty())
+        fun fileBasedMetadataFor(storage: Storage, path: Path, fileName: FileName): Map<String, String> =
+                mapOf(
+                        "fullQualifiedFilePath" to fullQualifiedFilePathFor(storage, path, fileName),
+                        "bucket" to storage.bucket,
+                        "path" to path.value,
+                        "fileName" to fileName.name,
+                        "extension" to fileName.extension
+                )
+
+        fun fullQualifiedFilePathFor(storage: Storage, path: Path, fileName: FileName) =
+                "${listOf(storage.bucket, path.value, fileName.name).filter { it.isNotBlank() }.joinToString("/")}.${fileName.extension}"
 
     }
 
@@ -28,20 +34,9 @@ data class Document(
             userDocumentMetadata.content.plus(fileBasedMetadataFor(storage, path, fileContent.fileName))
 
 
-    private fun fileBasedMetadataFor(storage: Storage, path: Path, fileName: FileName): Map<String, String> =
-            mapOf(
-                    "fullQualifiedFilePath" to fullQualifiedFilePathFor(storage),
-                    "bucket" to storage.bucket,
-                    "path" to path.value,
-                    "fileName" to fileName.name,
-                    "extension" to fileName.extension
-            )
-
     fun fullQualifiedFilePath() =
             "${listOf(path.value, fileContent.fileName.name).filter { it.isNotBlank() }.joinToString("/")}.${fileContent.fileName.extension}"
 
-    private fun fullQualifiedFilePathFor(storage: Storage) =
-            "${listOf(storage.bucket, path.value, fileContent.fileName.name).filter { it.isNotBlank() }.joinToString("/")}.${fileContent.fileName.extension}"
 }
 
 

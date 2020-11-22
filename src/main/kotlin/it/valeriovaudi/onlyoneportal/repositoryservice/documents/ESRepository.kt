@@ -106,16 +106,16 @@ class ESRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsea
 
     ////////////////////// DELETE /////////////////
 
-    fun delete(document: Document): Mono<Unit> =
-            deleteIndexRequestFor(document)
+    fun delete(application: Application, documentMetadata: DocumentMetadata): Mono<Unit> =
+            deleteIndexRequestFor(application, documentMetadata)
                     .flatMap { Mono.just(Unit) }
 
 
-    private fun deleteIndexRequestFor(document: Document) =
+    private fun deleteIndexRequestFor(application: Application, documentMetadata: DocumentMetadata) =
             reactiveElasticsearchTemplate.execute { client ->
                 client.delete { deleteRequest ->
-                    deleteRequest.index(indexNameFor(document.application))
-                            .id(idGenerator.generateId(document.userDocumentMetadata.content))
+                    deleteRequest.index(indexNameFor(application))
+                            .id(idGenerator.generateId(documentMetadata.content))
                 }
             }.toMono()
 

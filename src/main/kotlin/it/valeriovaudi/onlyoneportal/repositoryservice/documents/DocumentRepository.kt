@@ -45,8 +45,8 @@ class AWSCompositeDocumentRepository(private val clock: Clock,
             applicationStorageRepository.storageConfigurationFor(application)
                     .map { Mono.just(it.storage) }
                     .orElse(Mono.empty())
-                    .flatMap { storage -> s3Repository.delete(storage, path, fileName) }
-                    .flatMap { esRepository.delete(Document.from(application, path, fileName))}
+                    .flatMap { storage -> s3Repository.delete(storage, path, fileName); Mono.just(storage) }
+                    .flatMap { esRepository.delete(application, DocumentMetadata(Document.fileBasedMetadataFor(it, path, fileName))) }
                     .flatMap { Mono.just(Unit) }
 
 }
