@@ -1,7 +1,10 @@
-package it.valeriovaudi.onlyoneportal.repositoryservice.documents
+package it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3
 
 import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.Storage
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.Document
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.Document.Companion.fullQualifiedFilePathFor
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.FileName
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.Path
 import reactor.core.publisher.Mono
 import software.amazon.awssdk.core.ResponseBytes
 import software.amazon.awssdk.core.async.AsyncRequestBody

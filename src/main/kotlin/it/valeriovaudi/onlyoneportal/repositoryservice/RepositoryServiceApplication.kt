@@ -4,7 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.ApplicationStorageRepository
 import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.YamlApplicationStorageMapping
 import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.YamlApplicationStorageRepository
-import it.valeriovaudi.onlyoneportal.repositoryservice.documents.*
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.AWSCompositeDocumentRepository
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentUpdateEventSender
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.*
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3.S3Repository
 import it.valeriovaudi.onlyoneportal.repositoryservice.time.Clock
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -36,7 +39,11 @@ class RepositoryServiceApplication {
             AWSCompositeDocumentRepository(
                     Clock(),
                     S3Repository(s3Client),
-                    ESRepository(reactiveElasticsearchTemplate, applicationStorageRepository, DocumentMetadataEsIdGenerator()),
+                    ESRepository(
+                            DeleteDocumentRepository(reactiveElasticsearchTemplate, applicationStorageRepository, DocumentMetadataEsIdGenerator()),
+                            FindDocumentRepository(reactiveElasticsearchTemplate, applicationStorageRepository, DocumentMetadataEsIdGenerator()),
+                            SaveDocumentRepository(reactiveElasticsearchTemplate, applicationStorageRepository, DocumentMetadataEsIdGenerator())
+                    ),
                     DocumentUpdateEventSender(objectMapper, sqsAsyncClient, applicationStorageRepository),
                     applicationStorageRepository
             )

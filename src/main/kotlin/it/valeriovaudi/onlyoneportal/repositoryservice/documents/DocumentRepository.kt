@@ -1,6 +1,8 @@
 package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 
 import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.ApplicationStorageRepository
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.ESRepository
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3.S3Repository
 import it.valeriovaudi.onlyoneportal.repositoryservice.time.Clock
 import reactor.core.publisher.Mono
 
@@ -45,8 +47,10 @@ class AWSCompositeDocumentRepository(private val clock: Clock,
             applicationStorageRepository.storageConfigurationFor(application)
                     .map { Mono.just(it.storage) }
                     .orElse(Mono.empty())
-                    .flatMap { storage -> s3Repository.delete(storage, path, fileName); Mono.just(storage) }
-                    .flatMap { esRepository.delete(application, DocumentMetadata(Document.fileBasedMetadataFor(it, path, fileName))) }
+                    .flatMap { storage ->
+                        Mono.zip(s3Repository.delete(storage, path, fileName),
+                                esRepository.delete(application, DocumentMetadata(Document.fileBasedMetadataFor(storage, path, fileName))))
+                    }
                     .flatMap { Mono.just(Unit) }
 
 }
