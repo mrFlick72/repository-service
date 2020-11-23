@@ -10,16 +10,10 @@ class ESRepository(private val deleteDocumentRepository: DeleteDocumentRepositor
                    private val findAllDocumentRepository: FindAllDocumentRepository,
                    private val saveDocumentRepository: SaveDocumentRepository) {
 
-    //*********************** WRITE FUNCTION ***************************************************************************
-
     fun save(document: Document) = saveDocumentRepository.save(document)
-
-    //*********************** READ FUNCTION ****************************************************************************
 
     fun find(application: Application, documentMetadata: DocumentMetadata, page: Int = 0, size: Int = 10): Mono<DocumentMetadataPage> =
             findAllDocumentRepository.findAll(application, documentMetadata, page, size)
-
-    ////////////////////// DELETE /////////////////
 
     fun delete(application: Application, documentMetadata: DocumentMetadata): Mono<Unit> =
             deleteDocumentRepository.delete(application, documentMetadata)
