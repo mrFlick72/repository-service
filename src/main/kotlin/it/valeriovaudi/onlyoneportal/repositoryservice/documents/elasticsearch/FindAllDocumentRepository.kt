@@ -17,11 +17,11 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 
-class FindDocumentRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsearchTemplate) {
-    private val logger: Logger = LoggerFactory.getLogger(FindDocumentRepository::class.java)
+class FindAllDocumentRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsearchTemplate) {
+    private val logger: Logger = LoggerFactory.getLogger(FindAllDocumentRepository::class.java)
 
 
-    fun find(application: Application, documentMetadata: DocumentMetadata, page: Int = 0, size: Int = 10): Mono<DocumentMetadataPage> {
+    fun findAll(application: Application, documentMetadata: DocumentMetadata, page: Int = 0, size: Int = 10): Mono<DocumentMetadataPage> {
         return Flux.just(QueryBuilders.boolQuery())
                 .map { boolQueryBuilder(documentMetadata, it) }
                 .flatMap {

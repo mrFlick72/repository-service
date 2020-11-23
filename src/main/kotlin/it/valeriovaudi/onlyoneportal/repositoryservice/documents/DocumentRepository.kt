@@ -27,7 +27,7 @@ class AWSCompositeDocumentRepository(private val clock: Clock,
     override fun findOneDocumentFor(application: Application, path: Path, fileName: FileName): Mono<FileContent> =
             applicationStorageRepository.storageConfigurationFor(application)
                     .map { it.storage }
-                    .map { storage -> s3Repository.find(storage, path, fileName) }
+                    .map { storage -> s3Repository.findOne(storage, path, fileName) }
                     .orElse(Mono.empty())
                     .map { FileContent(fileName, FileContentType(it.response().contentType()), it.asByteArray()) }
 

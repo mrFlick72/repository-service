@@ -18,7 +18,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest
 
 class S3Repository(private val s3Client: S3AsyncClient) {
 
-    //    fun save(application: Application, document: Document): Mono<Unit> = Mono.fromCompletionStage
+    //    fun save(document: Document): Mono<Unit> = Mono.fromCompletionStage
     fun save(storage: Storage, document: Document): Mono<Unit> = Mono.fromCompletionStage {
         s3Client.putObject(PutObjectRequest.builder()
                 .contentType(document.fileContent.contentType.value)
@@ -30,7 +30,7 @@ class S3Repository(private val s3Client: S3AsyncClient) {
     }.flatMap { Mono.just(Unit) }
 
     //    fun find(application: Application, path: Path, fileName: FileName): Mono<ResponseBytes<GetObjectResponse>>
-    fun find(storage: Storage, path: Path, fileName: FileName): Mono<ResponseBytes<GetObjectResponse>> =
+    fun findOne(storage: Storage, path: Path, fileName: FileName): Mono<ResponseBytes<GetObjectResponse>> =
             Mono.fromCompletionStage {
                 s3Client.getObject(GetObjectRequest.builder()
                         .bucket(storage.bucket)

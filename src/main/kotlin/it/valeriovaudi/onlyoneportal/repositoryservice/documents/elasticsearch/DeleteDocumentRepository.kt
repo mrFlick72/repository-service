@@ -14,6 +14,7 @@ class DeleteDocumentRepository(private val reactiveElasticsearchTemplate: Reacti
                     .flatMap { Mono.just(Unit) }
 
 
+    //    fun delete(application: Application, path: Path, fileName: FileName): Mono<Unit> =
     private fun deleteIndexRequestFor(application: Application, documentMetadata: DocumentMetadata) =
             reactiveElasticsearchTemplate.execute { client ->
                 client.delete { deleteRequest ->

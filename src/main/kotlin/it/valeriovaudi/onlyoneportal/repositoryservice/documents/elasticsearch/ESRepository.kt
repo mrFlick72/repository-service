@@ -7,7 +7,7 @@ import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentMetadat
 import reactor.core.publisher.Mono
 
 class ESRepository(private val deleteDocumentRepository: DeleteDocumentRepository,
-                   private val findDocumentRepository: FindDocumentRepository,
+                   private val findAllDocumentRepository: FindAllDocumentRepository,
                    private val saveDocumentRepository: SaveDocumentRepository) {
 
     //*********************** WRITE FUNCTION ***************************************************************************
@@ -17,7 +17,7 @@ class ESRepository(private val deleteDocumentRepository: DeleteDocumentRepositor
     //*********************** READ FUNCTION ****************************************************************************
 
     fun find(application: Application, documentMetadata: DocumentMetadata, page: Int = 0, size: Int = 10): Mono<DocumentMetadataPage> =
-            findDocumentRepository.find(application, documentMetadata, page, size)
+            findAllDocumentRepository.findAll(application, documentMetadata, page, size)
 
     ////////////////////// DELETE /////////////////
 
