@@ -67,8 +67,6 @@ data class FileName(val name: String, val extension: String) {
     companion object {
         fun fileNameFrom(completeFileName: String): FileName {
             val fileExt = completeFileName.split(".").last()
-            println(completeFileName)
-            println(fileExt)
             val fileName = completeFileName.removeSuffix(".$fileExt")
             return FileName(fileName, fileExt)
         }

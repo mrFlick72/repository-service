@@ -1,22 +1,24 @@
 package it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch
 
 import it.valeriovaudi.onlyoneportal.repositoryservice.application.Application
-import it.valeriovaudi.onlyoneportal.repositoryservice.documents.Document
-import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentMetadata
-import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentMetadataPage
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.*
 import reactor.core.publisher.Mono
 
 class ESRepository(private val deleteDocumentRepository: DeleteDocumentRepository,
                    private val findAllDocumentRepository: FindAllDocumentRepository,
-                   private val saveDocumentRepository: SaveDocumentRepository) {
+                   private val saveDocumentRepository: SaveDocumentRepository) : DocumentRepository {
 
-    fun save(document: Document) = saveDocumentRepository.save(document)
+    override fun findOneDocumentFor(application: Application, path: Path, fileName: FileName): Mono<FileContent> =
+            TODO("Not yet implemented")
 
-    fun find(application: Application, documentMetadata: DocumentMetadata, page: Int = 0, size: Int = 10): Mono<DocumentMetadataPage> =
+
+    override fun findDocumentsFor(application: Application, documentMetadata: DocumentMetadata, page: Int, size: Int): Mono<DocumentMetadataPage> =
             findAllDocumentRepository.findAll(application, documentMetadata, page, size)
 
-    fun delete(application: Application, documentMetadata: DocumentMetadata): Mono<Unit> =
-            deleteDocumentRepository.delete(application, documentMetadata)
+    override fun saveDocumentFor(document: Document): Mono<Unit> = saveDocumentRepository.save(document)
+
+    override fun deleteDocumentFor(application: Application, path: Path, fileName: FileName): Mono<Unit> =
+            deleteDocumentRepository.delete(application, path, fileName)
 
 }
 

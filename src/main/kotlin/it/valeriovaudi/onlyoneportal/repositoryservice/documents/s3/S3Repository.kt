@@ -22,7 +22,7 @@ class S3Repository(private val s3Client: S3AsyncClient) : DocumentRepository {
                         AsyncResponseTransformer.toBytes())
             }.flatMap { Mono.just(FileContent(fileName, FileContentType(it.response().contentType()), it.asByteArray())) }
 
-    override fun findDocumentsFor(application: Application, documentMetadata: DocumentMetadata): Mono<DocumentMetadataPage> {
+    override fun findDocumentsFor(application: Application, documentMetadata: DocumentMetadata, page: Int, size: Int): Mono<DocumentMetadataPage> {
         TODO("Not yet implemented")
     }
 

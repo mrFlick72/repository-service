@@ -11,12 +11,7 @@ import reactor.kotlin.core.publisher.toMono
 class SaveDocumentRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsearchTemplate,
                              private val idGenerator: ESIdGenerator<Map<String, String>>) {
     fun save(document: Document) =
-            saveOnEsFor(document)
-                    .map(::extractIndexIdFor)
-
-
-    private fun extractIndexIdFor(documentMetadata: IndexResponse): Map<String, String> =
-            mapOf("index" to documentMetadata.index, "documentId" to documentMetadata.id)
+            saveOnEsFor(document).flatMap { Mono.just(Unit) }
 
     private fun saveOnEsFor(document: Document): Mono<IndexResponse> =
             reactiveElasticsearchTemplate.execute { client ->
