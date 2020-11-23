@@ -1,6 +1,6 @@
 package it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3
 
-import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.Storage
+import it.valeriovaudi.onlyoneportal.repositoryservice.application.Application
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.Document
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.Document.Companion.fullQualifiedFilePathFor
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.FileName
@@ -18,32 +18,29 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest
 
 class S3Repository(private val s3Client: S3AsyncClient) {
 
-    //    fun save(document: Document): Mono<Unit> = Mono.fromCompletionStage
-    fun save(storage: Storage, document: Document): Mono<Unit> = Mono.fromCompletionStage {
+    fun save(document: Document): Mono<Unit> = Mono.fromCompletionStage {
         s3Client.putObject(PutObjectRequest.builder()
                 .contentType(document.fileContent.contentType.value)
-                .bucket(storage.bucket)
-                .metadata(document.metadataWithSystemMetadataFor(storage))
+                .bucket(document.application.storage.bucket)
+                .metadata(document.metadataWithSystemMetadataFor(document.application.storage))
                 .key(document.fullQualifiedFilePath())
                 .build(),
                 AsyncRequestBody.fromBytes(document.fileContent.content))
     }.flatMap { Mono.just(Unit) }
 
-    //    fun find(application: Application, path: Path, fileName: FileName): Mono<ResponseBytes<GetObjectResponse>>
-    fun findOne(storage: Storage, path: Path, fileName: FileName): Mono<ResponseBytes<GetObjectResponse>> =
+    fun findOne(application: Application, path: Path, fileName: FileName): Mono<ResponseBytes<GetObjectResponse>> =
             Mono.fromCompletionStage {
                 s3Client.getObject(GetObjectRequest.builder()
-                        .bucket(storage.bucket)
+                        .bucket(application.storage.bucket)
                         .key(fullQualifiedFilePathFor(path, fileName))
                         .build(),
                         AsyncResponseTransformer.toBytes())
             }
 
-    //    fun delete(application: Application, path: Path, fileName: FileName): Mono<Unit> =
-    fun delete(storage: Storage, path: Path, fileName: FileName): Mono<Unit> =
+    fun delete(application: Application, path: Path, fileName: FileName): Mono<Unit> =
             Mono.fromCompletionStage {
                 s3Client.deleteObject(DeleteObjectRequest.builder()
-                        .bucket(storage.bucket)
+                        .bucket(application.storage.bucket)
                         .key(fullQualifiedFilePathFor(path, fileName))
                         .build())
             }.flatMap { Mono.just(Unit) }

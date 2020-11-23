@@ -1,6 +1,7 @@
 package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 
-import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.Storage
+import it.valeriovaudi.onlyoneportal.repositoryservice.application.Application
+import it.valeriovaudi.onlyoneportal.repositoryservice.application.Storage
 
 data class Document(
         val application: Application,
@@ -39,12 +40,6 @@ data class Document(
 
 }
 
-
-data class Application(val value: String) {
-    companion object {
-        fun empty(): Application = Application("")
-    }
-}
 
 data class FileContent(val fileName: FileName, val contentType: FileContentType, val content: ByteArray) {
     override fun equals(other: Any?): Boolean {

@@ -1,6 +1,6 @@
 package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 
-import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.Storage
+import it.valeriovaudi.onlyoneportal.repositoryservice.application.Storage
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.TestFixture.testableApplicationStorageRepository
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.DocumentMetadataEsIdGenerator
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.ESRepository

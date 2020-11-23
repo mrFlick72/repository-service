@@ -1,20 +1,19 @@
-package it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage
+package it.valeriovaudi.onlyoneportal.repositoryservice.application
 
-import it.valeriovaudi.onlyoneportal.repositoryservice.documents.Application
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 import java.util.*
 
-interface ApplicationStorageRepository {
-    fun storageConfigurationFor(application: Application): Optional<ApplicationStorageConfig>
+interface ApplicationRepository {
+    fun findApplicationFor(applicationName: ApplicationName): Optional<Application>
 }
 
-class YamlApplicationStorageRepository(private val storage: YamlApplicationStorageMapping) : ApplicationStorageRepository {
-    override fun storageConfigurationFor(application: Application) =
-            Optional.ofNullable(storage.content[application.value])
+class YamlApplicationRepository(private val storage: YamlApplicationStorageMapping) : ApplicationRepository {
+    override fun findApplicationFor(applicationName: ApplicationName) =
+            Optional.ofNullable(storage.content[applicationName.value])
                     .map {
-                        ApplicationStorageConfig(
-                                application,
+                        Application(
+                                applicationName,
                                 Storage(it.bucket),
                                 Optional.ofNullable(it.updateSignalSqsQueue).map(::UpdateSignals)
                         )

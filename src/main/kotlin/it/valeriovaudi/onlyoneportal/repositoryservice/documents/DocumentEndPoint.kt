@@ -1,6 +1,8 @@
 package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import it.valeriovaudi.onlyoneportal.repositoryservice.application.ApplicationName
+import it.valeriovaudi.onlyoneportal.repositoryservice.application.ApplicationRepository
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentMetadataPageRepresentation.Companion.fromDomainToRepresentation
 import it.valeriovaudi.onlyoneportal.repositoryservice.extentions.queryParamExtractor
 import org.springframework.context.annotation.Bean
@@ -16,13 +18,18 @@ import reactor.kotlin.core.publisher.toMono
 import java.nio.charset.Charset
 
 @Configuration
-class DocumentEndPoint(private val documentRepository: DocumentRepository) {
+class DocumentEndPoint(
+        private val applicationRepository: ApplicationRepository,
+        private val documentRepository: DocumentRepository
+) {
 
     @Bean
     fun messageEndPointRoute(objectMapper: ObjectMapper) =
             router {
                 PUT("/documents/{application}", contentType(MediaType.MULTIPART_FORM_DATA)) { requester ->
-                    val application = Application(requester.pathVariable("application"))
+                    val applicationName = ApplicationName(requester.pathVariable("application"))
+                    val application = applicationRepository.findApplicationFor(applicationName).orElseThrow()
+
                     requester.multipartData().flatMap {
                         val metadata = it["metadata"].orEmpty().first().content()
                                 .map { it.toString(Charset.defaultCharset()) }
@@ -46,7 +53,9 @@ class DocumentEndPoint(private val documentRepository: DocumentRepository) {
                 }
 
                 PUT("/documents/{application}") {
-                    val application = Application(it.pathVariable("application"))
+                    val applicationName = ApplicationName(it.pathVariable("application"))
+                    val application = applicationRepository.findApplicationFor(applicationName).orElseThrow()
+
                     val queryAsMap = it.body(BodyExtractors.toMono(Map::class.java))
 
                     queryAsMap.flatMap { query -> documentRepository.findDocumentsFor(application, DocumentMetadata(query as Map<String, String>)) }
@@ -59,9 +68,11 @@ class DocumentEndPoint(private val documentRepository: DocumentRepository) {
                     val fileName = it.queryParamExtractor("fileName")
                     val fileExtension = it.queryParamExtractor("fileExt")
                     val path = it.queryParamExtractor("path", Path::class.java)
-                    val application = it.pathVariable("application")
+                    val applicationName = ApplicationName(it.pathVariable("application"))
+                    val application = applicationRepository.findApplicationFor(applicationName).orElseThrow()
 
-                    documentRepository.findOneDocumentFor(Application(application), path, FileName(fileName, fileExtension)
+
+                    documentRepository.findOneDocumentFor(application, path, FileName(fileName, fileExtension)
                     ).flatMap { fileContent ->
                         ok()
                                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$fileName.$fileExtension")
@@ -74,9 +85,10 @@ class DocumentEndPoint(private val documentRepository: DocumentRepository) {
                     val fileName = it.queryParamExtractor("fileName")
                     val fileExtension = it.queryParamExtractor("fileExt")
                     val path = it.queryParamExtractor("path", Path::class.java)
-                    val application = it.pathVariable("application")
+                    val applicationName = ApplicationName(it.pathVariable("application"))
+                    val application = applicationRepository.findApplicationFor(applicationName).orElseThrow()
 
-                    documentRepository.deleteDocumentFor(Application(application), path, FileName(fileName, fileExtension)
+                    documentRepository.deleteDocumentFor(application, path, FileName(fileName, fileExtension)
                     ).flatMap { noContent().build() }
                             .switchIfEmpty(notFound().build())
                 }

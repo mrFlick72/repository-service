@@ -1,6 +1,6 @@
 package it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch
 
-import it.valeriovaudi.onlyoneportal.repositoryservice.documents.Application
+import it.valeriovaudi.onlyoneportal.repositoryservice.application.Application
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentMetadata
 import org.springframework.data.elasticsearch.core.ReactiveElasticsearchTemplate
 import reactor.core.publisher.Mono

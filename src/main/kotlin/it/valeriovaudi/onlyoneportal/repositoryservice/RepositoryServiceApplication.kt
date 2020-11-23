@@ -1,9 +1,9 @@
 package it.valeriovaudi.onlyoneportal.repositoryservice
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.ApplicationStorageRepository
-import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.YamlApplicationStorageMapping
-import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.YamlApplicationStorageRepository
+import it.valeriovaudi.onlyoneportal.repositoryservice.application.ApplicationRepository
+import it.valeriovaudi.onlyoneportal.repositoryservice.application.YamlApplicationRepository
+import it.valeriovaudi.onlyoneportal.repositoryservice.application.YamlApplicationStorageMapping
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.AWSCompositeDocumentRepository
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentUpdateEventSender
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.*
@@ -28,24 +28,24 @@ class RepositoryServiceApplication {
 
     @Bean
     fun applicationStorageRepository(storage: YamlApplicationStorageMapping) =
-            YamlApplicationStorageRepository(storage)
+            YamlApplicationRepository(storage)
 
     @Bean
     fun documentRepository(reactiveElasticsearchTemplate: ReactiveElasticsearchTemplate,
                            s3Client: S3AsyncClient,
                            sqsAsyncClient: SqsAsyncClient,
                            objectMapper: ObjectMapper,
-                           applicationStorageRepository: ApplicationStorageRepository) =
+                           applicationRepository: ApplicationRepository) =
             AWSCompositeDocumentRepository(
                     Clock(),
                     S3Repository(s3Client),
                     ESRepository(
                             DeleteDocumentRepository(reactiveElasticsearchTemplate, DocumentMetadataEsIdGenerator()),
                             FindAllDocumentRepository(reactiveElasticsearchTemplate),
-                            SaveDocumentRepository(reactiveElasticsearchTemplate, applicationStorageRepository, DocumentMetadataEsIdGenerator())
+                            SaveDocumentRepository(reactiveElasticsearchTemplate, DocumentMetadataEsIdGenerator())
                     ),
-                    DocumentUpdateEventSender(objectMapper, sqsAsyncClient, applicationStorageRepository),
-                    applicationStorageRepository
+                    DocumentUpdateEventSender(objectMapper, sqsAsyncClient, applicationRepository),
+                    applicationRepository
             )
 
     @Bean

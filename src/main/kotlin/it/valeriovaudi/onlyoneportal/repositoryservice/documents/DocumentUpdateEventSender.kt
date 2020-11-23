@@ -1,7 +1,8 @@
 package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.ApplicationStorageRepository
+import it.valeriovaudi.onlyoneportal.repositoryservice.application.ApplicationName
+import it.valeriovaudi.onlyoneportal.repositoryservice.application.ApplicationRepository
 import it.valeriovaudi.onlyoneportal.repositoryservice.time.TimeStamp
 import reactor.core.publisher.Mono
 import software.amazon.awssdk.services.sqs.SqsAsyncClient
@@ -9,9 +10,9 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient
 
 class DocumentUpdateEventSender(private val objectMapper: ObjectMapper,
                                 private val sqsAsyncClient: SqsAsyncClient,
-                                private val applicationStorageRepository: ApplicationStorageRepository) {
+                                private val applicationRepository: ApplicationRepository) {
     fun publishEventFor(event: StorageUpdateEvent): Mono<Unit> =
-            applicationStorageRepository.storageConfigurationFor(event.application)
+            applicationRepository.findApplicationFor(event.applicationName)
                     .flatMap { config -> config.updateSignals }
                     .map { updateSignals ->
                         Mono.fromCompletionStage(
@@ -23,7 +24,7 @@ class DocumentUpdateEventSender(private val objectMapper: ObjectMapper,
                     }.orElse(Mono.just(Unit))
 }
 
-data class StorageUpdateEvent(val application: Application,
+data class StorageUpdateEvent(val applicationName: ApplicationName,
                               val path: Path,
                               val fileName: FileName,
                               val updateTimesTamp: TimeStamp)

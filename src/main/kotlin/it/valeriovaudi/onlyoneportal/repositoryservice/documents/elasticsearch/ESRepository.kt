@@ -1,6 +1,6 @@
 package it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch
 
-import it.valeriovaudi.onlyoneportal.repositoryservice.documents.Application
+import it.valeriovaudi.onlyoneportal.repositoryservice.application.Application
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.Document
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentMetadata
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentMetadataPage
@@ -26,4 +26,4 @@ class ESRepository(private val deleteDocumentRepository: DeleteDocumentRepositor
 
 }
 
-fun indexNameFor(application: Application) = "${application.value}_indexes"
+fun indexNameFor(application: Application) = "${application.applicationName.value}_indexes"
