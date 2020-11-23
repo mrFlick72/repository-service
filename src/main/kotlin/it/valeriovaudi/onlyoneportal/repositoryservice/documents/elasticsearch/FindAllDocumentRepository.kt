@@ -32,7 +32,7 @@ class FindAllDocumentRepository(private val reactiveElasticsearchTemplate: React
     }
 
     private fun boolQueryBuilder(documentMetadata: DocumentMetadata, builder: BoolQueryBuilder): BoolQueryBuilder {
-        documentMetadata.content.map { entry -> builder.must(QueryBuilders.matchQuery(entry.key, entry.value)) };
+        documentMetadata.content.map { entry -> builder.must(QueryBuilders.matchQuery(entry.key, entry.value)) }
         return builder
     }
 
