@@ -44,8 +44,7 @@ class RepositoryServiceApplication {
                             FindAllDocumentRepository(reactiveElasticsearchTemplate),
                             SaveDocumentRepository(reactiveElasticsearchTemplate, DocumentMetadataEsIdGenerator())
                     ),
-                    DocumentUpdateEventSender(objectMapper, sqsAsyncClient, applicationRepository),
-                    applicationRepository
+                    DocumentUpdateEventSender(objectMapper, sqsAsyncClient, applicationRepository)
             )
 
     @Bean
