@@ -40,8 +40,8 @@ class RepositoryServiceApplication {
                     Clock(),
                     S3Repository(s3Client),
                     ESRepository(
-                            DeleteDocumentRepository(reactiveElasticsearchTemplate, applicationStorageRepository, DocumentMetadataEsIdGenerator()),
-                            FindDocumentRepository(reactiveElasticsearchTemplate, applicationStorageRepository, DocumentMetadataEsIdGenerator()),
+                            DeleteDocumentRepository(reactiveElasticsearchTemplate, DocumentMetadataEsIdGenerator()),
+                            FindDocumentRepository(reactiveElasticsearchTemplate),
                             SaveDocumentRepository(reactiveElasticsearchTemplate, applicationStorageRepository, DocumentMetadataEsIdGenerator())
                     ),
                     DocumentUpdateEventSender(objectMapper, sqsAsyncClient, applicationStorageRepository),

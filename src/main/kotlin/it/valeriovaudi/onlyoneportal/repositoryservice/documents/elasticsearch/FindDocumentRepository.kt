@@ -1,6 +1,5 @@
 package it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch
 
-import it.valeriovaudi.onlyoneportal.repositoryservice.applicationstorage.ApplicationStorageRepository
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.Application
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentMetadata
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentMetadataPage
@@ -18,9 +17,7 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 
-class FindDocumentRepository (private val reactiveElasticsearchTemplate: ReactiveElasticsearchTemplate,
-                              private val applicationStorageRepository: ApplicationStorageRepository,
-                              private val idGenerator: ESIdGenerator<Map<String, String>>) {
+class FindDocumentRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsearchTemplate) {
     private val logger: Logger = LoggerFactory.getLogger(FindDocumentRepository::class.java)
 
 
@@ -70,6 +67,5 @@ class FindDocumentRepository (private val reactiveElasticsearchTemplate: Reactiv
 
     private fun adaptDocument(it: SearchHit) =
             DocumentMetadata(it.sourceAsMap.mapValues { entry -> entry.value.toString() })
-
 
 }
