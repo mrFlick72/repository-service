@@ -22,7 +22,7 @@ import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.sqs.SqsAsyncClient
 
-@SpringBootApplication
+@SpringBootApplication(proxyBeanMethods = false)
 @EnableConfigurationProperties(YamlApplicationStorageMapping::class)
 class RepositoryServiceApplication {
 

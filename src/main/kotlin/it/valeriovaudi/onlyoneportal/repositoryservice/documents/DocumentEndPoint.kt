@@ -17,7 +17,7 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import java.nio.charset.Charset
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 class DocumentEndPoint(
         private val applicationRepository: ApplicationRepository,
         private val documentRepository: DocumentRepository
