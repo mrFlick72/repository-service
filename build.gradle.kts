@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 
 plugins {
     id("org.springframework.boot") version "2.4.1"
@@ -20,6 +21,9 @@ repositories {
 }
 
 dependencies {
+
+    implementation("org.springframework.cloud:spring-cloud-starter-bootstrap")
+    implementation("org.springframework.experimental:spring-graalvm-native:0.8.3")
     implementation("org.springframework.cloud:spring-cloud-starter-config")
     implementation("org.springframework.cloud:spring-cloud-starter-sleuth")
     implementation("org.springframework.boot:spring-boot-starter-data-elasticsearch")
@@ -55,4 +59,16 @@ tasks.withType<KotlinCompile> {
         freeCompilerArgs = listOf("-Xjsr305=strict")
         jvmTarget = "11"
     }
+}
+
+tasks.getByName<BootBuildImage>("bootBuildImage") {
+    builder = "paketobuildpacks/builder:tiny"
+    imageName = "mrflick72/repository-service-k8s:latest"
+    environment = mapOf(
+            "BP_BOOT_NATIVE_IMAGE" to "1",
+            "BP_BOOT_NATIVE_IMAGE_BUILD_ARGUMENTS" to """
+                -Dspring.spel.ignore=true                
+                -Dspring.native.remove-yaml-support=true
+            """.trimIndent()
+    )
 }
