@@ -1,6 +1,6 @@
 FROM openjdk:11
 
-ADD repository-service.jar /usr/local/repository-service/
+ADD build/libs/repository-service.jar /usr/local/repository-service/
 
 VOLUME /var/log/onlyone-portal
 

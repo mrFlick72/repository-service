@@ -35,9 +35,10 @@ jobs:
             sleep 30s
 
       - run: ./gradlew build
-
+        -
       - run:
           name: docker push
           command: |
             docker login -u $DOCKER_HUB_USERNAME -p $DOCKER_HUB_PASSWORD
-            ./gradlew docker dockerPush
+            docker build . -t mrflick72/repository-service-k8s:latest
+            docker push mrflick72/repository-service-k8s:latest
