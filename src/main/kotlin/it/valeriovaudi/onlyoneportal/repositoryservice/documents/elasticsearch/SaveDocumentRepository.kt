@@ -27,7 +27,7 @@ class SaveDocumentRepository(private val reactiveElasticsearchTemplate: Reactive
         indexRequest.index(indexNameFor(document.application))
                 .source(metadata)
                 .id(idGenerator.generateId(Triple(document.application.storage, document.path, document.fileContent.fileName)))
-                .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
+                .refreshPolicy = WriteRequest.RefreshPolicy.IMMEDIATE
     }
 
 }
