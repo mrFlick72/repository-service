@@ -30,7 +30,7 @@ data class StorageUpdateEvent(val applicationName: ApplicationName,
                               val fileName: FileName,
                               val updateTimesTamp: TimeStamp) {
     fun toRepresentation() = mapOf(
-            "applicationName" to this.applicationName.value,
+            "application" to this.applicationName.value,
             "path" to this.path.value,
             "fileName" to "${this.fileName.name}.${this.fileName.extension}",
             "updateTimesTamp" to this.updateTimesTamp.localDateTime.toEpochSecond(ZoneOffset.UTC)
