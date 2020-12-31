@@ -6,6 +6,7 @@ import it.valeriovaudi.onlyoneportal.repositoryservice.application.ApplicationRe
 import it.valeriovaudi.onlyoneportal.repositoryservice.time.TimeStamp
 import reactor.core.publisher.Mono
 import software.amazon.awssdk.services.sqs.SqsAsyncClient
+import java.time.ZoneOffset
 
 
 class DocumentUpdateEventSender(private val objectMapper: ObjectMapper,
@@ -17,7 +18,7 @@ class DocumentUpdateEventSender(private val objectMapper: ObjectMapper,
                     .map { updateSignals ->
                         Mono.fromCompletionStage(
                                 sqsAsyncClient.sendMessage {
-                                    it.messageBody(objectMapper.writeValueAsString(event))
+                                    it.messageBody(objectMapper.writeValueAsString(event.toRepresentation()))
                                             .queueUrl(updateSignals.sqsQueue)
                                 }
                         ).flatMap { Mono.just(Unit) }
@@ -27,4 +28,12 @@ class DocumentUpdateEventSender(private val objectMapper: ObjectMapper,
 data class StorageUpdateEvent(val applicationName: ApplicationName,
                               val path: Path,
                               val fileName: FileName,
-                              val updateTimesTamp: TimeStamp)
+                              val updateTimesTamp: TimeStamp) {
+    fun toRepresentation() = mapOf(
+            "applicationName" to this.applicationName.value,
+            "path" to this.path.value,
+            "fileName" to "${this.fileName.name}.${this.fileName.extension}",
+            "updateTimesTamp" to this.updateTimesTamp.localDateTime.toEpochSecond(ZoneOffset.UTC)
+    )
+
+}
