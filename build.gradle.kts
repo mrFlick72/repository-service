@@ -7,7 +7,7 @@ plugins {
     kotlin("plugin.spring") version "1.4.21"
 }
 
-extra["springCloudVersion"] = "2020.0.0"
+extra["springCloudVersion"] = "2020.0.1"
 extra["aws.sdk.version"] = "2.10.64"
 
 group = "it.valeriovaudi.onlyoneportal"
@@ -16,13 +16,13 @@ java.sourceCompatibility = JavaVersion.VERSION_11
 
 repositories {
     mavenCentral()
-    maven { url = uri("https://repo.spring.io/milestone") }
 }
 
 dependencies {
     implementation("org.springframework.cloud:spring-cloud-starter-bootstrap")
     implementation("org.springframework.cloud:spring-cloud-starter-config")
     implementation("org.springframework.cloud:spring-cloud-starter-sleuth")
+    implementation("io.opentracing.brave:brave-opentracing")
     implementation("org.springframework.boot:spring-boot-starter-data-elasticsearch")
 
     implementation("software.amazon.awssdk:s3:${property("aws.sdk.version")}")
