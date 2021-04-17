@@ -27,3 +27,9 @@ jobs:
 
       - name: Build
         run: ./gradlew build
+
+      - name: docker push
+        run: |
+        docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
+        docker build . -t mrflick72/repository-service-k8s:latest
+        docker push mrflick72/repository-service-k8s:latest
