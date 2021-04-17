@@ -55,14 +55,10 @@ class RepositoryServiceApplication {
 
 
     @Bean
-    fun awsCredentialsProviderFromEnv(): AwsCredentialsProvider =
-            EnvironmentVariableCredentialsProvider.create()
-
-
-    @Bean
     fun s3Client(@Value("\${aws.region}") awsRegion: String,
                  awsCredentialsProvider: AwsCredentialsProvider) = S3AsyncClient.builder()
             .credentialsProvider(awsCredentialsProvider)
+            .region(Region.of(awsRegion))
             .build()
 
     @Bean
