@@ -13,6 +13,5 @@ interface ESIdGenerator<T> {
 
 class DocumentEsIdGenerator : ESIdGenerator<Triple<Storage, Path, FileName>> {
     override fun generateId(criteria: Triple<Storage, Path, FileName>): String =
-            Document.Companion.fullQualifiedFilePathFor(criteria.first, criteria.second, criteria.third).toSha256()
-
+            Document.fullQualifiedFilePathFor(criteria.first, criteria.second, criteria.third).toSha256()
 }

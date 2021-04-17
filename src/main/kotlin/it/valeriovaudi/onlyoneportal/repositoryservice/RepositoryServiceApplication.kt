@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.data.elasticsearch.core.ReactiveElasticsearchTemplate
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
+import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient
@@ -54,10 +55,14 @@ class RepositoryServiceApplication {
 
 
     @Bean
+    fun awsCredentialsProviderFromEnv(): AwsCredentialsProvider =
+            EnvironmentVariableCredentialsProvider.create()
+
+
+    @Bean
     fun s3Client(@Value("\${aws.region}") awsRegion: String,
                  awsCredentialsProvider: AwsCredentialsProvider) = S3AsyncClient.builder()
             .credentialsProvider(awsCredentialsProvider)
-            .region(Region.of(awsRegion))
             .build()
 
     @Bean
