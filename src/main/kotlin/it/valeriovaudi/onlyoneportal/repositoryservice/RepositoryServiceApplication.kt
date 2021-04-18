@@ -6,22 +6,21 @@ import it.valeriovaudi.onlyoneportal.repositoryservice.application.YamlApplicati
 import it.valeriovaudi.onlyoneportal.repositoryservice.application.YamlApplicationStorageMapping
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.AWSCompositeDocumentRepository
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentUpdateEventSender
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.ReceiveMessageRequestFactory
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.StorageUpdateEventsListener
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.*
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3.S3Repository
 import it.valeriovaudi.onlyoneportal.repositoryservice.time.Clock
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.data.elasticsearch.core.ReactiveElasticsearchTemplate
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
-import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.sqs.SqsAsyncClient
+import java.time.Duration
 
 @SpringBootApplication
 @EnableConfigurationProperties(YamlApplicationStorageMapping::class)
@@ -49,24 +48,30 @@ class RepositoryServiceApplication {
             )
 
     @Bean
-    fun awsCredentialsProvider(@Value("\${aws.access-key}") accessKey: String,
-                               @Value("\${aws.secret-key}") awsSecretKey: String): AwsCredentialsProvider =
-            StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, awsSecretKey))
+    fun storageUpdateEventsListener(sqsAsyncClient: SqsAsyncClient) =
+            StorageUpdateEventsListener(
+                    sqsAsyncClient,
+                    ReceiveMessageRequestFactory(System.getenv("AWS_TESTING_SQS_STORAGE_REINDEX_QUEUE"),
+                            10, 10, 10),
+                    Duration.ofSeconds(30)
+            )
+
+    @Bean
+    fun awsCredentialsProvider(): AwsCredentialsProvider =
+            EnvironmentVariableCredentialsProvider.create()
 
 
     @Bean
-    fun s3Client(@Value("\${aws.region}") awsRegion: String,
-                 awsCredentialsProvider: AwsCredentialsProvider) = S3AsyncClient.builder()
-            .credentialsProvider(awsCredentialsProvider)
-            .region(Region.of(awsRegion))
-            .build()
+    fun s3Client(awsCredentialsProvider: AwsCredentialsProvider): S3AsyncClient =
+            S3AsyncClient.builder()
+                    .credentialsProvider(awsCredentialsProvider)
+                    .build()
 
     @Bean
-    fun sqsAsyncClient(@Value("\${aws.region}") awsRegion: String,
-                       awsCredentialsProvider: AwsCredentialsProvider) = SqsAsyncClient.builder()
-            .credentialsProvider(awsCredentialsProvider)
-            .region(Region.of(awsRegion))
-            .build()
+    fun sqsAsyncClient(awsCredentialsProvider: AwsCredentialsProvider): SqsAsyncClient =
+            SqsAsyncClient.builder()
+                    .credentialsProvider(awsCredentialsProvider)
+                    .build()
 }
 
 fun main(args: Array<String>) {
