@@ -3,6 +3,9 @@ package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 import it.valeriovaudi.onlyoneportal.repositoryservice.application.Application
 import it.valeriovaudi.onlyoneportal.repositoryservice.application.ApplicationName
 import it.valeriovaudi.onlyoneportal.repositoryservice.application.Storage
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.aFakeDocument
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.application
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.randomizer
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.*
 import org.junit.jupiter.api.*
 import org.springframework.data.elasticsearch.client.ClientConfiguration.builder
@@ -18,8 +21,6 @@ internal class ESRepositoryTest {
     private fun template(): ReactiveElasticsearchTemplate =
             ReactiveElasticsearchTemplate(create(builder().connectedTo("localhost:39200").build()))
 
-    private val randomizer = LocalDate.now().toEpochDay().toString()
-
     private val reactiveElasticsearchTemplate = template()
     private val idGenerator = DocumentEsIdGenerator()
     private val esRepository = ESRepository(
@@ -31,15 +32,7 @@ internal class ESRepositoryTest {
     @Test
     @Order(1)
     internal fun `save a document on es`() {
-        val storage = Storage("A_BUCKET")
-        val application = Application(ApplicationName("an_app"), storage, Optional.empty())
-        val path = Path("a_path")
-        val fileName = FileName("a_file", "jpg")
-        val document = Document(
-                application, FileContent(fileName, FileContentType(""), ByteArray(0)),
-                path, DocumentMetadata(mapOf("randomizer" to randomizer, "prop1" to "A_VALUE", "prop2" to "ANOTHER_VALUE")
-        )
-        )
+        val document = aFakeDocument(randomizer);
         val saveStream = esRepository.saveDocumentFor(document)
         val writerVerifier = StepVerifier.create(saveStream)
         writerVerifier.expectNext(Unit)
