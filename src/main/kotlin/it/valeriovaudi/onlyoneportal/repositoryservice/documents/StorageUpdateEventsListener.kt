@@ -1,6 +1,7 @@
 package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 
 import com.jayway.jsonpath.JsonPath
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3.S3MetadataRepository
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import reactor.core.publisher.Flux
@@ -12,6 +13,7 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import java.time.Duration
 
 class StorageUpdateEventsListener(
+    private val s3MetadataRepository: S3MetadataRepository,
     private val sqsAsyncClient: SqsAsyncClient,
     private val factory: ReceiveMessageRequestFactory,
     private val duration: Duration
@@ -20,9 +22,17 @@ class StorageUpdateEventsListener(
     fun listen() =
         Flux.interval(duration)
             .flatMap { handleMessage() }
+            .log()
+            .flatMap { metadata ->
+                val objectMetadataFor = s3MetadataRepository.objectMetadataFor(
+                    metadata["bucket"]!!,
+                    metadata["key"]!!
+                )
+                objectMetadataFor
+            }
 
 
-    private fun handleMessage() =
+    private fun handleMessage(): Flux<Map<String, String>> =
         Flux.from(fromCompletionStage(sqsAsyncClient.receiveMessage(factory.makeAReceiveMessageRequest())))
             .flatMap { response -> Flux.fromIterable(response.messages()) }
             .flatMap { message -> purgeProcessedMessagesFor(message) }
@@ -32,12 +42,12 @@ class StorageUpdateEventsListener(
         fromCompletionStage(sqsAsyncClient.deleteMessage(factory.makeADeleteMessageRequest(message.receiptHandle())))
             .thenMany(objectDetailsFrom(message))
 
-    private fun objectDetailsFrom(message: Message) = Flux.defer {
+    private fun objectDetailsFrom(message: Message): Flux<Map<String, String>> = Flux.defer {
         val parse = JsonPath.parse(message.body())
         Flux.zip(
             Flux.fromIterable(parse.read("\$..bucket.name", List::class.java)),
             Flux.fromIterable(parse.read("\$..object.key", List::class.java))
-        ).flatMap { Flux.just(mapOf("bucket" to it.t1, "key" to it.t2)) }
+        ).flatMap { Flux.just(mapOf<String, String>("bucket" to it.t1.toString(), "key" to it.t2.toString())) }
     }
 
 

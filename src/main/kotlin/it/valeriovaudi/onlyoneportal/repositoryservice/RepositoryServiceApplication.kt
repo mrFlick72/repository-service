@@ -4,11 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import it.valeriovaudi.onlyoneportal.repositoryservice.application.ApplicationRepository
 import it.valeriovaudi.onlyoneportal.repositoryservice.application.YamlApplicationRepository
 import it.valeriovaudi.onlyoneportal.repositoryservice.application.YamlApplicationStorageMapping
-import it.valeriovaudi.onlyoneportal.repositoryservice.documents.AWSCompositeDocumentRepository
-import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentUpdateEventSender
-import it.valeriovaudi.onlyoneportal.repositoryservice.documents.ReceiveMessageRequestFactory
-import it.valeriovaudi.onlyoneportal.repositoryservice.documents.StorageUpdateEventsListener
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.*
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.*
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3.S3MetadataRepository
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3.S3Repository
 import it.valeriovaudi.onlyoneportal.repositoryservice.time.Clock
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -53,8 +51,9 @@ class RepositoryServiceApplication {
         )
 
     @Bean
-    fun storageUpdateEventsListener(sqsAsyncClient: SqsAsyncClient) =
+    fun storageUpdateEventsListener(sqsAsyncClient: SqsAsyncClient, s3Client: S3AsyncClient) =
         StorageUpdateEventsListener(
+            S3MetadataRepository(s3Client),
             sqsAsyncClient,
             ReceiveMessageRequestFactory(
                 System.getenv("AWS_TESTING_SQS_STORAGE_REINDEX_QUEUE"),

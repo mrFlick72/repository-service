@@ -5,6 +5,7 @@ import it.valeriovaudi.onlyoneportal.repositoryservice.application.Storage
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.aFakeDocumentWith
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.applicationWith
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.randomizer
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3.S3MetadataRepository
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3.S3Repository
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -17,7 +18,6 @@ import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest
 import software.amazon.awssdk.services.sqs.SqsAsyncClient
 import java.time.Duration
-import javax.print.Doc
 
 internal class StorageUpdateEventsListenerTest {
 
@@ -53,6 +53,7 @@ internal class StorageUpdateEventsListenerTest {
 
         val storageUpdateEventsListener =
             StorageUpdateEventsListener(
+                S3MetadataRepository(s3Client),
                 sqsClient,
                 ReceiveMessageRequestFactory(
                     queueUrl,
@@ -61,10 +62,10 @@ internal class StorageUpdateEventsListenerTest {
                 Duration.ofSeconds(1)
             )
 
-        StepVerifier.create(storageUpdateEventsListener.listen())
+/*        StepVerifier.create(storageUpdateEventsListener.listen())
             .expectNext(mapOf("bucket" to bucket, "key" to "a_path/a_file.jpg"))
             .expectComplete()
-            .verify()
+            .verify()*/
 
         val message = storageUpdateEventsListener.listen()
             .blockFirst(Duration.ofSeconds(60))
