@@ -8,7 +8,11 @@ import it.valeriovaudi.onlyoneportal.repositoryservice.documents.AWSCompositeDoc
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentUpdateEventSender
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.ReceiveMessageRequestFactory
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.StorageUpdateEventsListener
-import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.*
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.SaveDocumentRepository
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.DeleteDocumentRepository
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.DocumentEsIdGenerator
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.ESRepository
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.FindAllDocumentRepository
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3.S3Repository
 import it.valeriovaudi.onlyoneportal.repositoryservice.time.Clock
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -28,50 +32,57 @@ class RepositoryServiceApplication {
 
     @Bean
     fun applicationStorageRepository(storage: YamlApplicationStorageMapping) =
-            YamlApplicationRepository(storage)
+        YamlApplicationRepository(storage)
 
     @Bean
-    fun documentRepository(reactiveElasticsearchTemplate: ReactiveElasticsearchTemplate,
-                           s3Client: S3AsyncClient,
-                           sqsAsyncClient: SqsAsyncClient,
-                           objectMapper: ObjectMapper,
-                           applicationRepository: ApplicationRepository) =
-            AWSCompositeDocumentRepository(
-                    Clock(),
-                    S3Repository(s3Client),
-                    ESRepository(
-                            DeleteDocumentRepository(reactiveElasticsearchTemplate, DocumentEsIdGenerator()),
-                            FindAllDocumentRepository(reactiveElasticsearchTemplate),
-                            SaveDocumentRepository(reactiveElasticsearchTemplate, DocumentEsIdGenerator())
-                    ),
-                    DocumentUpdateEventSender(objectMapper, sqsAsyncClient, applicationRepository)
-            )
+    fun documentRepository(
+        reactiveElasticsearchTemplate: ReactiveElasticsearchTemplate,
+        s3Client: S3AsyncClient,
+        sqsAsyncClient: SqsAsyncClient,
+        objectMapper: ObjectMapper,
+        applicationRepository: ApplicationRepository
+    ) =
+        AWSCompositeDocumentRepository(
+            Clock(),
+            S3Repository(s3Client),
+            ESRepository(
+                DeleteDocumentRepository(reactiveElasticsearchTemplate, DocumentEsIdGenerator()),
+                FindAllDocumentRepository(reactiveElasticsearchTemplate),
+                SaveDocumentRepository(
+                    reactiveElasticsearchTemplate,
+                    DocumentEsIdGenerator()
+                )
+            ),
+            DocumentUpdateEventSender(objectMapper, sqsAsyncClient, applicationRepository)
+        )
 
     @Bean
     fun storageUpdateEventsListener(sqsAsyncClient: SqsAsyncClient) =
-            StorageUpdateEventsListener(
-                    sqsAsyncClient,
-                    ReceiveMessageRequestFactory(System.getenv("AWS_TESTING_SQS_STORAGE_REINDEX_QUEUE"),
-                            10, 10, 10),
-                    Duration.ofSeconds(30)
-            )
+        StorageUpdateEventsListener(
+            sqsAsyncClient,
+            ReceiveMessageRequestFactory(
+                System.getenv("AWS_TESTING_SQS_STORAGE_REINDEX_QUEUE"),
+                10, 10, 10
+            ),
+            Duration.ofSeconds(30)
+        )
 
     @Bean
     fun awsCredentialsProvider(): AwsCredentialsProvider =
-            EnvironmentVariableCredentialsProvider.create()
+        EnvironmentVariableCredentialsProvider.create()
 
 
     @Bean
     fun s3Client(awsCredentialsProvider: AwsCredentialsProvider): S3AsyncClient =
-            S3AsyncClient.builder()
-                    .credentialsProvider(awsCredentialsProvider)
-                    .build()
+        S3AsyncClient.builder()
+            .credentialsProvider(awsCredentialsProvider)
+            .build()
 
     @Bean
     fun sqsAsyncClient(awsCredentialsProvider: AwsCredentialsProvider): SqsAsyncClient =
-            SqsAsyncClient.builder()
-                    .credentialsProvider(awsCredentialsProvider)
-                    .build()
+        SqsAsyncClient.builder()
+            .credentialsProvider(awsCredentialsProvider)
+            .build()
 }
 
 fun main(args: Array<String>) {

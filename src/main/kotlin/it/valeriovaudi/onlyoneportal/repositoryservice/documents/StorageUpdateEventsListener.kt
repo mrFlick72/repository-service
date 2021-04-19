@@ -9,7 +9,6 @@ import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import java.time.Duration
 
-
 class StorageUpdateEventsListener(private val sqsAsyncClient: SqsAsyncClient,
                                   private val factory: ReceiveMessageRequestFactory,
                                   private val duration: Duration) : ApplicationRunner {
