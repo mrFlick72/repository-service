@@ -11,10 +11,12 @@ data class Document(
 ) {
     companion object {
         fun fullQualifiedFilePathFor(path: Path, fileName: FileName) =
-                Document(Application.empty(),
-                        FileContent(fileName, FileContentType.empty(), ByteArray(0)),
-                        path,
-                        DocumentMetadata.empty())
+                Document(
+                    Application.empty(),
+                    FileContent(fileName, FileContentType.empty(), ByteArray(0)),
+                    path,
+                    DocumentMetadata.empty()
+                )
                         .fullQualifiedFilePath()
 
         fun fileBasedMetadataFor(storage: Storage, path: Path, fileName: FileName): Map<String, String> =

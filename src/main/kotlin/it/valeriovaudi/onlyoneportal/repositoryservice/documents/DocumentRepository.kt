@@ -33,7 +33,14 @@ class AWSCompositeDocumentRepository(private val clock: Clock,
     override fun saveDocumentFor(document: Document) =
             s3Repository.saveDocumentFor(document)
                     .flatMap { esRepository.saveDocumentFor(document) }
-                    .flatMap { sqsEventSenderDocument.publishEventFor(StorageUpdateEvent(document.application.applicationName, document.path, document.fileContent.fileName, clock.now())) }
+                    .flatMap { sqsEventSenderDocument.publishEventFor(
+                        StorageUpdateEvent(
+                            document.application.applicationName,
+                            document.path,
+                            document.fileContent.fileName,
+                            clock.now()
+                        )
+                    ) }
                     .flatMap { Mono.just(Unit) }
 
     override fun deleteDocumentFor(application: Application, path: Path, fileName: FileName): Mono<Unit> =

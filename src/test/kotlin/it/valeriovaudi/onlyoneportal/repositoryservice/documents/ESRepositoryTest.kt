@@ -1,8 +1,5 @@
 package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 
-import it.valeriovaudi.onlyoneportal.repositoryservice.application.Application
-import it.valeriovaudi.onlyoneportal.repositoryservice.application.ApplicationName
-import it.valeriovaudi.onlyoneportal.repositoryservice.application.Storage
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.aFakeDocument
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.application
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.randomizer
@@ -12,7 +9,6 @@ import org.springframework.data.elasticsearch.client.ClientConfiguration.builder
 import org.springframework.data.elasticsearch.client.reactive.ReactiveRestClients.create
 import org.springframework.data.elasticsearch.core.ReactiveElasticsearchTemplate
 import reactor.test.StepVerifier
-import java.time.LocalDate
 import java.util.*
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)

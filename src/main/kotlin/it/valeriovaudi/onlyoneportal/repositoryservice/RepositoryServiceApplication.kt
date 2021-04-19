@@ -8,11 +8,7 @@ import it.valeriovaudi.onlyoneportal.repositoryservice.documents.AWSCompositeDoc
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentUpdateEventSender
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.ReceiveMessageRequestFactory
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.StorageUpdateEventsListener
-import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.SaveDocumentRepository
-import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.DeleteDocumentRepository
-import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.DocumentEsIdGenerator
-import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.ESRepository
-import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.FindAllDocumentRepository
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.*
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3.S3Repository
 import it.valeriovaudi.onlyoneportal.repositoryservice.time.Clock
 import org.springframework.boot.autoconfigure.SpringBootApplication
