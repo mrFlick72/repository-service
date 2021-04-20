@@ -35,25 +35,33 @@ class RepositoryServiceApplication {
         sqsAsyncClient: SqsAsyncClient,
         objectMapper: ObjectMapper,
         applicationRepository: ApplicationRepository
-    ) =
-        AWSCompositeDocumentRepository(
-            Clock(),
-            S3Repository(s3Client),
-            ESRepository(
-                DeleteDocumentRepository(reactiveElasticsearchTemplate, DocumentEsIdGenerator()),
-                FindAllDocumentRepository(reactiveElasticsearchTemplate),
-                SaveDocumentRepository(
-                    reactiveElasticsearchTemplate,
-                    DocumentEsIdGenerator()
-                )
-            ),
-            DocumentUpdateEventSender(objectMapper, sqsAsyncClient, applicationRepository)
+    ) = AWSCompositeDocumentRepository(
+        Clock(),
+        S3Repository(s3Client),
+        ESRepository(
+            DeleteDocumentRepository(reactiveElasticsearchTemplate, DocumentEsIdGenerator()),
+            FindAllDocumentRepository(reactiveElasticsearchTemplate),
+            saveDocumentRepository(reactiveElasticsearchTemplate)
+        ),
+        DocumentUpdateEventSender(objectMapper, sqsAsyncClient, applicationRepository)
+    )
+
+    @Bean
+    fun saveDocumentRepository(reactiveElasticsearchTemplate: ReactiveElasticsearchTemplate) =
+        SaveDocumentRepository(
+            reactiveElasticsearchTemplate,
+            DocumentEsIdGenerator()
         )
 
     @Bean
-    fun storageUpdateEventsListener(sqsAsyncClient: SqsAsyncClient, s3Client: S3AsyncClient) =
+    fun storageUpdateEventsListener(
+        sqsAsyncClient: SqsAsyncClient,
+        s3Client: S3AsyncClient,
+        saveDocumentRepository: SaveDocumentRepository
+    ) =
         StorageUpdateEventsListener(
             S3MetadataRepository(s3Client),
+            saveDocumentRepository,
             sqsAsyncClient,
             ReceiveMessageRequestFactory(
                 System.getenv("AWS_TESTING_SQS_STORAGE_REINDEX_QUEUE"),

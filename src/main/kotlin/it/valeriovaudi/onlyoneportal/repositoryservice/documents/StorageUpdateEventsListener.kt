@@ -1,6 +1,7 @@
 package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 
 import com.jayway.jsonpath.JsonPath
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.SaveDocumentRepository
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3.S3MetadataRepository
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
@@ -14,6 +15,7 @@ import java.time.Duration
 
 class StorageUpdateEventsListener(
     private val s3MetadataRepository: S3MetadataRepository,
+    private val saveDocumentRepository: SaveDocumentRepository,
     private val sqsAsyncClient: SqsAsyncClient,
     private val factory: ReceiveMessageRequestFactory,
     private val duration: Duration
@@ -24,11 +26,10 @@ class StorageUpdateEventsListener(
             .flatMap { handleMessage() }
             .log()
             .flatMap { metadata ->
-                val objectMetadataFor = s3MetadataRepository.objectMetadataFor(
+                s3MetadataRepository.objectMetadataFor(
                     metadata["bucket"]!!,
-                    metadata["key"]!!
+                    metadata["key"]!!,
                 )
-                objectMetadataFor
             }
 
 
@@ -47,7 +48,7 @@ class StorageUpdateEventsListener(
         Flux.zip(
             Flux.fromIterable(parse.read("\$..bucket.name", List::class.java)),
             Flux.fromIterable(parse.read("\$..object.key", List::class.java))
-        ).flatMap { Flux.just(mapOf<String, String>("bucket" to it.t1.toString(), "key" to it.t2.toString())) }
+        ).flatMap { Flux.just(mapOf("bucket" to it.t1.toString(), "key" to it.t2.toString())) }
     }
 
 
