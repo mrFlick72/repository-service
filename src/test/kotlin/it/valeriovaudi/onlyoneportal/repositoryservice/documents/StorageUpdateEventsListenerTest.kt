@@ -26,7 +26,6 @@ import org.springframework.data.elasticsearch.client.ClientConfiguration
 import org.springframework.data.elasticsearch.client.reactive.ReactiveRestClients
 import org.springframework.data.elasticsearch.core.ReactiveElasticsearchTemplate
 import reactor.core.publisher.Mono
-import reactor.test.StepVerifier
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.sqs.SqsAsyncClient
