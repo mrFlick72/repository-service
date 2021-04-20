@@ -6,6 +6,7 @@ import it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3.S3MetadataRe
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import reactor.core.publisher.Mono.fromCompletionStage
 import software.amazon.awssdk.services.sqs.SqsAsyncClient
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest
@@ -24,7 +25,6 @@ class StorageUpdateEventsListener(
     fun listen() =
         Flux.interval(duration)
             .flatMap { handleMessage() }
-            .log()
             .flatMap { metadata ->
                 s3MetadataRepository.objectMetadataFor(
                     metadata["bucket"]!!,
