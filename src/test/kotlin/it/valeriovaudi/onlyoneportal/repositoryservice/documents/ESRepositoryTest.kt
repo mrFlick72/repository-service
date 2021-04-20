@@ -40,7 +40,7 @@ internal class ESRepositoryTest {
                         DocumentMetadata(
                                 mapOf(
                                         "randomizer" to randomizer,
-                                        "fullQualifiedFilePath" to "A_BUCKET/a_path/a_file.jpg"
+                                        "fullqualifiedfilepath" to "A_BUCKET/a_path/a_file.jpg"
                                 )
                         )
                 )
@@ -55,8 +55,8 @@ internal class ESRepositoryTest {
                                     "prop2" to "ANOTHER_VALUE",
                                     "bucket" to "A_BUCKET",
                                     "path" to "a_path",
-                                    "fullQualifiedFilePath" to "A_BUCKET/a_path/a_file.jpg",
-                                    "fileName" to "a_file",
+                                    "fullqualifiedfilepath" to "A_BUCKET/a_path/a_file.jpg",
+                                    "filename" to "a_file",
                                     "extension" to "jpg"
                             )
                     )

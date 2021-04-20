@@ -1,7 +1,9 @@
 package it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3
 
+import it.valeriovaudi.onlyoneportal.repositoryservice.application.Storage
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.`updates a document on s3 with metadata from`
-import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.aFakeDocument
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.aFakeDocumentWith
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.applicationWith
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.bucket
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.objectKey
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentMetadata
@@ -22,7 +24,8 @@ internal class S3MetadataRepositoryTest {
     @Test
     fun `then fetch the document metadata for`() {
         val randomizerValue = UUID.randomUUID().toString()
-        val document = aFakeDocument(randomizerValue)
+        val document = aFakeDocumentWith(randomizerValue, applicationWith(Storage(bucket)))
+
         `updates a document on s3 with metadata from`(document, s3Repository)
 
         val metadataRepository = S3MetadataRepository(s3Client)

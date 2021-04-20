@@ -10,7 +10,7 @@ import java.util.*
 
 object DocumentFixture {
     val bucket: String = System.getenv("AWS_TESTING_S3_APPLICATION_STORAGE")
-    val objectKey: String = "a_path/a_file.jpg"
+    const val objectKey: String = "a_path/a_file.jpg"
     val queueUrl: String = System.getenv("AWS_TESTING_SQS_STORAGE_REINDEX_QUEUE")
 
     val randomizer = LocalDate.now().toEpochDay().toString()

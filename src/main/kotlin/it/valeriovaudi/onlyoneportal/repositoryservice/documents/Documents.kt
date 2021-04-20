@@ -35,6 +35,7 @@ data class Document(
 
     fun metadataWithSystemMetadataFor(storage: Storage) =
             userDocumentMetadata.content.plus(fileBasedMetadataFor(storage, path, fileContent.fileName))
+                .map { it.key.toLowerCase() to it.value }.toMap()
 
 
     fun fullQualifiedFilePath() =
