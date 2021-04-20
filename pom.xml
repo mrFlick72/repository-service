@@ -20,6 +20,7 @@
         <aws.sdk.version>2.10.64</aws.sdk.version>
         <java.version>11</java.version>
         <kotlin.version>1.4.32</kotlin.version>
+        <io.mockk.version>1.11.0</io.mockk.version>
         <spring-cloud.version>2020.0.2</spring-cloud.version>
     </properties>
 
@@ -98,6 +99,12 @@
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.mockk</groupId>
+            <artifactId>mockk</artifactId>
+            <version>${io.mockk.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

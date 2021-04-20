@@ -2,8 +2,11 @@ package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 
 import ch.qos.logback.classic.Level
 import it.valeriovaudi.onlyoneportal.repositoryservice.application.Storage
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.`updates a document on s3 with metadata from`
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.aFakeDocumentWith
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.applicationWith
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.bucket
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.queueUrl
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.randomizer
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.DocumentEsIdGenerator
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.SaveDocumentRepository
@@ -16,7 +19,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.elasticsearch.client.ClientConfiguration
 import org.springframework.data.elasticsearch.client.reactive.ReactiveRestClients
 import org.springframework.data.elasticsearch.core.ReactiveElasticsearchTemplate
-import reactor.test.StepVerifier
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.sqs.SqsAsyncClient
@@ -24,8 +26,8 @@ import java.time.Duration
 
 internal class StorageUpdateEventsListenerTest {
 
-    private val bucket = System.getenv("AWS_TESTING_S3_APPLICATION_STORAGE")
-    private val queueUrl = System.getenv("AWS_TESTING_SQS_STORAGE_REINDEX_QUEUE")
+    private lateinit var s3MetadataRepository : S3MetadataRepository
+
     private val sqsClient: SqsAsyncClient =
         SqsAsyncClient.builder()
             .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
@@ -61,11 +63,11 @@ internal class StorageUpdateEventsListenerTest {
             applicationWith(Storage(bucket))
         )
 
-        `updates a document on s3 with metadata from`(document)
+        `updates a document on s3 with metadata from`(document, s3Repository)
 
         val storageUpdateEventsListener =
             StorageUpdateEventsListener(
-                S3MetadataRepository(s3Client),
+                s3MetadataRepository,
                 SaveDocumentRepository(reactiveElasticsearchTemplate, idGenerator),
                 sqsClient,
                 ReceiveMessageRequestFactory(
@@ -87,14 +89,4 @@ internal class StorageUpdateEventsListenerTest {
         )
     }
 
-    
-    private fun `updates a document on s3 with metadata from`(document : Document) {
-        StepVerifier.create(
-            s3Repository.saveDocumentFor(
-                document
-            )
-        )
-            .expectNext(Unit)
-            .verifyComplete()
-    }
 }

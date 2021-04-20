@@ -5,20 +5,23 @@ import it.valeriovaudi.onlyoneportal.repositoryservice.application.ApplicationNa
 import it.valeriovaudi.onlyoneportal.repositoryservice.application.Storage
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3.S3Repository
 import reactor.test.StepVerifier
-import software.amazon.awssdk.services.s3.S3AsyncClient
 import java.time.LocalDate
 import java.util.*
 
 object DocumentFixture {
+    val bucket: String = System.getenv("AWS_TESTING_S3_APPLICATION_STORAGE")
+    val objectKey: String = "a_path/a_file.jpg"
+    val queueUrl: String = System.getenv("AWS_TESTING_SQS_STORAGE_REINDEX_QUEUE")
+
     val randomizer = LocalDate.now().toEpochDay().toString()
 
     fun applicationWith(storage: Storage) = Application(ApplicationName("an_app"), storage, Optional.empty())
 
-    val storage = Storage("A_BUCKET")
+    private val storage = Storage("A_BUCKET")
     val application = Application(ApplicationName("an_app"), storage, Optional.empty())
 
-    val path = Path("a_path")
-    val fileName = FileName("a_file", "jpg")
+    private val path = Path("a_path")
+    private val fileName = FileName("a_file", "jpg")
     fun aFakeDocument(randomizer: String) = Document(
         application, FileContent(fileName, FileContentType(""), ByteArray(0)),
         path, DocumentMetadata(
