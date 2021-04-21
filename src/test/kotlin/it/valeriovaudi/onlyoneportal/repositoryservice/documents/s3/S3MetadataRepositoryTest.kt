@@ -6,6 +6,7 @@ import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.aFakeDocumentWith
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.applicationWith
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.bucket
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.documentMetadata
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.objectKey
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentMetadata
 import org.junit.jupiter.api.BeforeEach
@@ -40,20 +41,7 @@ internal class S3MetadataRepositoryTest {
 
         val metadataRepository = S3MetadataRepository(s3Client)
         StepVerifier.create(metadataRepository.objectMetadataFor(bucket, objectKey))
-            .expectNext(
-                DocumentMetadata(
-                    mapOf(
-                        "bucket" to bucket,
-                        "randomizer" to "$randomizerValue",
-                        "path" to "a_path",
-                        "filename" to "a_file",
-                        "extension" to "jpg",
-                        "fullqualifiedfilepath" to "$bucket/a_path/a_file.jpg",
-                        "prop1" to "A_VALUE",
-                        "prop2" to "ANOTHER_VALUE"
-                    )
-                )
-            )
+            .expectNext(documentMetadata(randomizerValue))
             .verifyComplete()
     }
 }

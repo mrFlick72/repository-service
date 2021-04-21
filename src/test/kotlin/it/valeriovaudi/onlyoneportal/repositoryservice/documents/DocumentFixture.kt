@@ -15,7 +15,8 @@ object DocumentFixture {
 
     val randomizer = LocalDate.now().toEpochDay().toString()
 
-    fun applicationWith(storage: Storage) = Application(ApplicationName("an_app"), storage, Optional.empty())
+    fun applicationWith(storage: Storage, applicationName: ApplicationName = ApplicationName("an_app")) =
+        Application(applicationName = applicationName, storage, Optional.empty())
 
     private val storage = Storage("A_BUCKET")
     val application = Application(ApplicationName("an_app"), storage, Optional.empty())
@@ -26,6 +27,19 @@ object DocumentFixture {
         application, FileContent(fileName, FileContentType(""), ByteArray(0)),
         path, DocumentMetadata(
             mapOf("randomizer" to randomizer, "prop1" to "A_VALUE", "prop2" to "ANOTHER_VALUE")
+        )
+    )
+
+    fun documentMetadata(randomizerValue: String) = DocumentMetadata(
+        mapOf(
+            "bucket" to bucket,
+            "randomizer" to "$randomizerValue",
+            "path" to "a_path",
+            "filename" to "a_file",
+            "extension" to "jpg",
+            "fullqualifiedfilepath" to "$bucket/a_path/a_file.jpg",
+            "prop1" to "A_VALUE",
+            "prop2" to "ANOTHER_VALUE"
         )
     )
 

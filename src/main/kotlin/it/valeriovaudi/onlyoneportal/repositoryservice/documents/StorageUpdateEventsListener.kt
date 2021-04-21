@@ -1,6 +1,10 @@
 package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 
 import com.jayway.jsonpath.JsonPath
+import it.valeriovaudi.onlyoneportal.repositoryservice.application.Application
+import it.valeriovaudi.onlyoneportal.repositoryservice.application.ApplicationName
+import it.valeriovaudi.onlyoneportal.repositoryservice.application.Storage
+import it.valeriovaudi.onlyoneportal.repositoryservice.application.UpdateSignals
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.SaveDocumentRepository
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3.S3MetadataRepository
 import org.springframework.boot.ApplicationArguments
@@ -13,6 +17,7 @@ import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest
 import software.amazon.awssdk.services.sqs.model.Message
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import java.time.Duration
+import java.util.*
 
 class StorageUpdateEventsListener(
     private val s3MetadataRepository: S3MetadataRepository,
@@ -29,6 +34,15 @@ class StorageUpdateEventsListener(
                 s3MetadataRepository.objectMetadataFor(
                     metadata["bucket"]!!,
                     metadata["key"]!!,
+                )
+            }
+            .flatMap {
+                saveDocumentRepository.save(
+                    Document(
+                        Application(ApplicationName(""), Storage(it.content["bucket"]!!), Optional.empty()),
+                        FileContent(FileName.fileNameFrom("${it.content["filename"]!!}.${it.content["extension"]!!}"), FileContentType(""), ByteArray(0)),
+                        Path(it.content["path"]!!), it.userDocumentMetadata()
+                    )
                 )
             }
 
