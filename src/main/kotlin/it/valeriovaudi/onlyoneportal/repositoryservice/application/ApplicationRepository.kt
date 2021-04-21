@@ -6,18 +6,33 @@ import java.util.*
 
 interface ApplicationRepository {
     fun findApplicationFor(applicationName: ApplicationName): Optional<Application>
+    fun findApplicationFor(storage: Storage): Optional<Application>
 }
 
-class YamlApplicationRepository(private val storage: YamlApplicationStorageMapping) : ApplicationRepository {
+class YamlApplicationRepository(private val configurationStorage: YamlApplicationStorageMapping) :
+    ApplicationRepository {
     override fun findApplicationFor(applicationName: ApplicationName) =
-            Optional.ofNullable(storage.content[applicationName.value])
-                    .map {
-                        Application(
-                                applicationName,
-                                Storage(it.bucket),
-                                Optional.ofNullable(it.updateSignalSqsQueue).map(::UpdateSignals)
-                        )
-                    }
+        Optional.ofNullable(configurationStorage.content[applicationName.value])
+            .map {
+                Application(
+                    applicationName,
+                    Storage(it.bucket),
+                    Optional.ofNullable(it.updateSignalSqsQueue).map(::UpdateSignals)
+                )
+            }
+
+    override fun findApplicationFor(storage: Storage): Optional<Application> {
+        return Optional.ofNullable(
+            configurationStorage.content.entries.find { it.value.bucket == storage.bucket }
+        ).map {
+            Application(
+                ApplicationName(it.key),
+                Storage(it.value.bucket),
+                Optional.ofNullable(it.value.updateSignalSqsQueue).map(::UpdateSignals)
+            )
+        }
+
+    }
 }
 
 @ConstructorBinding

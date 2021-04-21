@@ -55,11 +55,13 @@ class RepositoryServiceApplication {
 
     @Bean
     fun storageUpdateEventsListener(
+        applicationRepository : ApplicationRepository,
         sqsAsyncClient: SqsAsyncClient,
         s3Client: S3AsyncClient,
         saveDocumentRepository: SaveDocumentRepository
     ) =
         StorageUpdateEventsListener(
+            applicationRepository,
             S3MetadataRepository(s3Client),
             saveDocumentRepository,
             sqsAsyncClient,

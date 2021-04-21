@@ -5,15 +5,16 @@ import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
-import it.valeriovaudi.onlyoneportal.repositoryservice.application.ApplicationName
+import it.valeriovaudi.onlyoneportal.repositoryservice.application.ApplicationStorageFeature
 import it.valeriovaudi.onlyoneportal.repositoryservice.application.Storage
+import it.valeriovaudi.onlyoneportal.repositoryservice.application.YamlApplicationRepository
+import it.valeriovaudi.onlyoneportal.repositoryservice.application.YamlApplicationStorageMapping
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.`updates a document on s3 with metadata from`
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.aFakeDocumentWith
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.applicationWith
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.bucket
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.objectKey
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.queueUrl
-import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.randomizer
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.SaveDocumentRepository
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3.S3MetadataRepository
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3.S3Repository
@@ -37,6 +38,9 @@ internal class StorageUpdateEventsListenerTest {
     @MockK
     private lateinit var saveDocumentRepository: SaveDocumentRepository
 
+    val applicationRepository =
+        YamlApplicationRepository(YamlApplicationStorageMapping(mapOf("an_app" to ApplicationStorageFeature(bucket))))
+
     private val sqsClient: SqsAsyncClient =
         SqsAsyncClient.builder()
             .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
@@ -58,7 +62,7 @@ internal class StorageUpdateEventsListenerTest {
     @Test
     internal fun `when a message is received`() {
         val randomizerValue = "randomizerValue"
-        val document = aFakeDocumentWith(randomizerValue, applicationWith(applicationName= ApplicationName.empty(), storage =  Storage(bucket)))
+        val document = aFakeDocumentWith(randomizerValue, applicationWith(Storage(bucket)))
 
         `updates a document on s3 with metadata from`(document, s3Repository)
 
@@ -70,6 +74,7 @@ internal class StorageUpdateEventsListenerTest {
 
         val storageUpdateEventsListener =
             StorageUpdateEventsListener(
+                applicationRepository,
                 s3MetadataRepository,
                 saveDocumentRepository,
                 sqsClient,

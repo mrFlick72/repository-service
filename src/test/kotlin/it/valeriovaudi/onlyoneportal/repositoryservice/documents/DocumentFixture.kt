@@ -9,8 +9,9 @@ import java.time.LocalDate
 import java.util.*
 
 object DocumentFixture {
-    val bucket: String = System.getenv("AWS_TESTING_S3_APPLICATION_STORAGE")
     const val objectKey: String = "a_path/a_file.jpg"
+
+    val bucket: String = System.getenv("AWS_TESTING_S3_APPLICATION_STORAGE")
     val queueUrl: String = System.getenv("AWS_TESTING_SQS_STORAGE_REINDEX_QUEUE")
 
     val randomizer = LocalDate.now().toEpochDay().toString()
@@ -18,14 +19,13 @@ object DocumentFixture {
     fun applicationWith(storage: Storage, applicationName: ApplicationName = ApplicationName("an_app")) =
         Application(applicationName = applicationName, storage, Optional.empty())
 
-    private val storage = Storage("A_BUCKET")
-    val application = Application(ApplicationName("an_app"), storage, Optional.empty())
-
-    private val path = Path("a_path")
-    private val fileName = FileName("a_file", "jpg")
-    fun aFakeDocument(randomizer: String) = Document(
-        application, FileContent(fileName, FileContentType(""), ByteArray(0)),
-        path, DocumentMetadata(
+    fun aFakeDocumentWith(
+        randomizer: String,
+        application: Application = Application(ApplicationName("an_app"), Storage("A_BUCKET"), Optional.empty())
+    ) = Document(
+        application, FileContent(FileName("a_file", "jpg"), FileContentType(""), ByteArray(0)),
+        Path("a_path"),
+        DocumentMetadata(
             mapOf("randomizer" to randomizer, "prop1" to "A_VALUE", "prop2" to "ANOTHER_VALUE")
         )
     )
@@ -40,13 +40,6 @@ object DocumentFixture {
             "fullqualifiedfilepath" to "$bucket/a_path/a_file.jpg",
             "prop1" to "A_VALUE",
             "prop2" to "ANOTHER_VALUE"
-        )
-    )
-
-    fun aFakeDocumentWith(randomizer: String, application: Application) = Document(
-        application, FileContent(fileName, FileContentType(""), ByteArray(0)),
-        path, DocumentMetadata(
-            mapOf("randomizer" to randomizer, "prop1" to "A_VALUE", "prop2" to "ANOTHER_VALUE")
         )
     )
 
