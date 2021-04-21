@@ -10,6 +10,19 @@ data class Document(
     val userDocumentMetadata: UserDocumentMetadata
 ) {
     companion object {
+        fun emptyDocumentFrom(
+            it: Application,
+            documentMetadata: DocumentMetadata
+        ) = Document(
+            it,
+            FileContent(
+                FileName.fileNameFrom("${documentMetadata.fileNameFrom()}.${documentMetadata.extensionFrom()}"),
+                FileContentType.empty(),
+                ByteArray(0)
+            ),
+            Path(documentMetadata.pathFrom()), documentMetadata.userDocumentMetadata()
+        )
+
         fun fullQualifiedFilePathFor(path: Path, fileName: FileName) =
             Document(
                 Application.empty(),
@@ -100,6 +113,15 @@ data class DocumentMetadata(val content: Map<String, String>) {
             ).contains(it.key)
         })
 
+
+    fun pathFrom(): String =
+        content["path"]!!
+
+    fun extensionFrom() =
+        content["extension"]!!
+
+    fun fileNameFrom() =
+        content["filename"]!!
 
     companion object {
         fun empty() = DocumentMetadata(emptyMap())

@@ -2,16 +2,20 @@ package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 
 import com.jayway.jsonpath.JsonPath
 import it.valeriovaudi.onlyoneportal.repositoryservice.application.*
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.Document.Companion.emptyDocumentFrom
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.SaveDocumentRepository
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3.S3MetadataRepository
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import reactor.core.publisher.Mono.fromCompletionStage
+import reactor.core.publisher.Mono.just
 import software.amazon.awssdk.services.sqs.SqsAsyncClient
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest
 import software.amazon.awssdk.services.sqs.model.Message
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
+import java.lang.RuntimeException
 import java.time.Duration
 import java.util.*
 
@@ -29,24 +33,19 @@ class StorageUpdateEventsListener(
             .flatMap { handleMessage() }
             .flatMap { metadata ->
                 s3MetadataRepository.objectMetadataFor(
-                    metadata["bucket"]!!,
-                    metadata["key"]!!,
+                    bucketNameFrom(metadata),
+                    objectKeyFrom(metadata),
                 )
             }
-            .flatMap {
-                saveDocumentRepository.save(
-                    Document(
-                        applicationRepository.findApplicationFor(Storage(it.content["bucket"]!!))
-                            .orElse(Application.empty()),
-                        FileContent(
-                            FileName.fileNameFrom("${it.content["filename"]!!}.${it.content["extension"]!!}"),
-                            FileContentType(""),
-                            ByteArray(0)
-                        ),
-                        Path(it.content["path"]!!), it.userDocumentMetadata()
-                    )
-                )
+            .flatMap { documentMetadata ->
+                applicationRepository.findApplicationFor(Storage(bucketNameFrom(documentMetadata.content)))
+                    .map { saveDocumentRepository.save(emptyDocumentFrom(it, documentMetadata)) }
+                    .orElse(Mono.error(RuntimeException()))
             }
+
+    private fun objectKeyFrom(metadata: Map<String, String>) = metadata["key"]!!
+
+    private fun bucketNameFrom(metadata: Map<String, String>) = metadata["bucket"]!!
 
 
     private fun handleMessage(): Flux<Map<String, String>> =
