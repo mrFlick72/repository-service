@@ -5,19 +5,19 @@ import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
-import it.valeriovaudi.onlyoneportal.repositoryservice.application.ApplicationStorageFeature
-import it.valeriovaudi.onlyoneportal.repositoryservice.application.Storage
-import it.valeriovaudi.onlyoneportal.repositoryservice.application.YamlApplicationRepository
-import it.valeriovaudi.onlyoneportal.repositoryservice.application.YamlApplicationStorageMapping
+import it.valeriovaudi.onlyoneportal.repositoryservice.application.*
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.`updates a document on s3 with metadata from`
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.aFakeDocumentWith
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.applicationWith
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.bucket
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.objectKey
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.queueUrl
+import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.storageUpdateEventWith
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.SaveDocumentRepository
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3.S3MetadataRepository
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3.S3Repository
+import it.valeriovaudi.onlyoneportal.repositoryservice.time.Clock
+import it.valeriovaudi.onlyoneportal.repositoryservice.time.TimeStamp
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -38,7 +38,13 @@ internal class StorageUpdateEventsListenerTest {
     @MockK
     private lateinit var saveDocumentRepository: SaveDocumentRepository
 
-    val applicationRepository =
+    @MockK
+    private lateinit var documentUpdateEventSender: DocumentUpdateEventSender
+
+    @MockK
+    private lateinit var clock: Clock
+
+    private val applicationRepository =
         YamlApplicationRepository(YamlApplicationStorageMapping(mapOf("an_app" to ApplicationStorageFeature(bucket))))
 
     private val sqsClient: SqsAsyncClient =
@@ -63,6 +69,8 @@ internal class StorageUpdateEventsListenerTest {
     internal fun `when a message is received`() {
         val randomizerValue = "randomizerValue"
         val document = aFakeDocumentWith(randomizerValue, applicationWith(Storage(bucket)))
+        val updateTimesTamp = TimeStamp.now()
+        val updateEvent = storageUpdateEventWith(updateTimesTamp)
 
         `updates a document on s3 with metadata from`(document, s3Repository)
 
@@ -72,8 +80,16 @@ internal class StorageUpdateEventsListenerTest {
         every { saveDocumentRepository.save(document) }
             .returns(Mono.just(Unit))
 
+        every { documentUpdateEventSender.publishEventFor(updateEvent) }
+            .returns(Mono.just(Unit))
+
+        every { clock.now() }
+            .returns(updateTimesTamp)
+
         val storageUpdateEventsListener =
             StorageUpdateEventsListener(
+                clock,
+                documentUpdateEventSender,
                 applicationRepository,
                 s3MetadataRepository,
                 saveDocumentRepository,
@@ -90,6 +106,7 @@ internal class StorageUpdateEventsListenerTest {
 
         verify { s3MetadataRepository.objectMetadataFor(bucket, objectKey) }
         verify { saveDocumentRepository.save(document) }
+        verify { documentUpdateEventSender.publishEventFor(updateEvent) }
     }
 
 }

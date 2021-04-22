@@ -4,6 +4,7 @@ import it.valeriovaudi.onlyoneportal.repositoryservice.application.Application
 import it.valeriovaudi.onlyoneportal.repositoryservice.application.ApplicationName
 import it.valeriovaudi.onlyoneportal.repositoryservice.application.Storage
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3.S3Repository
+import it.valeriovaudi.onlyoneportal.repositoryservice.time.TimeStamp
 import reactor.test.StepVerifier
 import java.time.LocalDate
 import java.util.*
@@ -42,6 +43,9 @@ object DocumentFixture {
             "prop2" to "ANOTHER_VALUE"
         )
     )
+
+    fun storageUpdateEventWith(updateTimesTamp: TimeStamp) =
+        StorageUpdateEvent(ApplicationName("an_app"), Path("a_path"), FileName.fileNameFrom("a_file.jpg"), updateTimesTamp)
 
     fun `updates a document on s3 with metadata from`(document: Document, s3Repository: S3Repository) {
         StepVerifier.create(

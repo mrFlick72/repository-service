@@ -6,6 +6,7 @@ import it.valeriovaudi.onlyoneportal.repositoryservice.application.Storage
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.Document.Companion.emptyDocumentFrom
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.SaveDocumentRepository
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3.S3MetadataRepository
+import it.valeriovaudi.onlyoneportal.repositoryservice.time.Clock
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import reactor.core.publisher.Flux
@@ -16,6 +17,8 @@ import software.amazon.awssdk.services.sqs.model.Message
 import java.time.Duration
 
 class StorageUpdateEventsListener(
+    private val clock : Clock,
+    private val documentUpdateEventSender: DocumentUpdateEventSender,
     private val applicationRepository: ApplicationRepository,
     private val s3MetadataRepository: S3MetadataRepository,
     private val saveDocumentRepository: SaveDocumentRepository,
@@ -29,6 +32,16 @@ class StorageUpdateEventsListener(
             .flatMap { fetchMessages() }
             .flatMap(this::objectMetadataFrom)
             .flatMap(this::updateIndexOnEsFrom)
+            .flatMap { document ->
+                documentUpdateEventSender.publishEventFor(
+                    StorageUpdateEvent(
+                        document.application.applicationName,
+                        document.path,
+                        document.fileContent.fileName,
+                        clock.now()
+                    )
+                )
+            }
 
     override fun run(args: ApplicationArguments) {
         listen().subscribe(System.out::println)
@@ -67,7 +80,10 @@ class StorageUpdateEventsListener(
 
     private fun updateIndexOnEsFrom(documentMetadata: DocumentMetadata) =
         applicationRepository.findApplicationFor(Storage(bucketNameFrom(documentMetadata.content)))
-            .map { saveDocumentRepository.save(emptyDocumentFrom(it, documentMetadata)) }
+            .map {
+                saveDocumentRepository.save(emptyDocumentFrom(it, documentMetadata))
+                    .then(Mono.defer { Mono.just(emptyDocumentFrom(it, documentMetadata)) })
+            }
             .orElse(Mono.error(RuntimeException()))
 
 }

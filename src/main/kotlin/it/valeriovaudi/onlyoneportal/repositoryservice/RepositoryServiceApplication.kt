@@ -29,12 +29,19 @@ class RepositoryServiceApplication {
         YamlApplicationRepository(storage)
 
     @Bean
+    fun documentUpdateEventSender(
+        objectMapper: ObjectMapper,
+        sqsAsyncClient: SqsAsyncClient,
+        applicationRepository: ApplicationRepository
+    ) =
+        DocumentUpdateEventSender(objectMapper, sqsAsyncClient, applicationRepository)
+
+
+    @Bean
     fun documentRepository(
         reactiveElasticsearchTemplate: ReactiveElasticsearchTemplate,
         s3Client: S3AsyncClient,
-        sqsAsyncClient: SqsAsyncClient,
-        objectMapper: ObjectMapper,
-        applicationRepository: ApplicationRepository
+        documentUpdateEventSender: DocumentUpdateEventSender
     ) = AWSCompositeDocumentRepository(
         Clock(),
         S3Repository(s3Client),
@@ -43,7 +50,7 @@ class RepositoryServiceApplication {
             FindAllDocumentRepository(reactiveElasticsearchTemplate),
             saveDocumentRepository(reactiveElasticsearchTemplate)
         ),
-        DocumentUpdateEventSender(objectMapper, sqsAsyncClient, applicationRepository)
+        documentUpdateEventSender
     )
 
     @Bean
@@ -55,12 +62,15 @@ class RepositoryServiceApplication {
 
     @Bean
     fun storageUpdateEventsListener(
-        applicationRepository : ApplicationRepository,
+        documentUpdateEventSender: DocumentUpdateEventSender,
+        applicationRepository: ApplicationRepository,
         sqsAsyncClient: SqsAsyncClient,
         s3Client: S3AsyncClient,
         saveDocumentRepository: SaveDocumentRepository
     ) =
         StorageUpdateEventsListener(
+            Clock(),
+            documentUpdateEventSender,
             applicationRepository,
             S3MetadataRepository(s3Client),
             saveDocumentRepository,
