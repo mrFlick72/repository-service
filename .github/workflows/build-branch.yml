@@ -51,3 +51,10 @@ jobs:
           export AWS_TESTING_S3_APPLICATION_STORAGE=${{ secrets.AWS_TESTING_S3_BUCKET }}
 
           mvn test
+
+
+      - name: docker push
+        run: |
+          docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
+          docker build . -t mrflick72/repository-service-k8s:${GITHUB_REF##*/}
+          docker push mrflick72/repository-service-k8s:${GITHUB_REF##*/}
