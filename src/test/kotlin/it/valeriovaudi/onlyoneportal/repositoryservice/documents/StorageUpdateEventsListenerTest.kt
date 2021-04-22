@@ -1,6 +1,7 @@
 package it.valeriovaudi.onlyoneportal.repositoryservice.documents
 
 import ch.qos.logback.classic.Level
+import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
@@ -104,9 +105,13 @@ internal class StorageUpdateEventsListenerTest {
         storageUpdateEventsListener.listen()
             .blockFirst(Duration.ofMinutes(1))
 
-        verify { s3MetadataRepository.objectMetadataFor(bucket, objectKey) }
-        verify { saveDocumentRepository.save(document) }
-        verify { documentUpdateEventSender.publishEventFor(updateEvent) }
+        verify(exactly = 1)  { s3MetadataRepository.objectMetadataFor(bucket, objectKey) }
+        verify(exactly = 1)  { saveDocumentRepository.save(document) }
+        verify(exactly = 1) { documentUpdateEventSender.publishEventFor(updateEvent) }
+
+        confirmVerified(s3MetadataRepository)
+        confirmVerified(saveDocumentRepository)
+        confirmVerified(documentUpdateEventSender)
     }
 
 }
