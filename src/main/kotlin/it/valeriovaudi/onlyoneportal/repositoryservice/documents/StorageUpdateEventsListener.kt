@@ -10,6 +10,7 @@ import it.valeriovaudi.onlyoneportal.repositoryservice.time.Clock
 import org.slf4j.LoggerFactory
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
+import org.springframework.boot.DefaultApplicationArguments
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.publisher.Mono.fromCompletionStage
@@ -19,7 +20,7 @@ import java.time.Duration
 import java.util.*
 
 class StorageUpdateEventsListener(
-    private val clock : Clock,
+    private val clock: Clock,
     private val documentUpdateEventSender: DocumentUpdateEventSender,
     private val applicationRepository: ApplicationRepository,
     private val s3MetadataRepository: S3MetadataRepository,
@@ -45,10 +46,20 @@ class StorageUpdateEventsListener(
                         clock.now()
                     )
                 )
-            }
+            }.doOnComplete { logger.info("subscription completed") }
+            .doOnCancel { logger.info("subscription cancelled") }
+            .doOnSubscribe { logger.info("subscription started") }
+            .doOnError { e -> logger.error("subscription error: ", e) };
 
     override fun run(args: ApplicationArguments) {
-        listen().subscribe(System.out::println)
+        listen().doOnError(Exception::class.java) { e: Any ->
+            try {
+                this.run(DefaultApplicationArguments())
+            } catch (exception: Exception) {
+                logger.error("subscription error: ", e)
+                logger.error("going to resubscribe again ")
+            }
+        }.subscribe()
     }
 
 
@@ -98,6 +109,6 @@ class StorageUpdateEventsListener(
                     .then(Mono.defer { Mono.just(emptyDocumentFrom(it, documentMetadata)) })
             }
             .orElse(Mono.error(RuntimeException("application not found for application metadata ${documentMetadata.content}")))
-            .onErrorResume { Mono.empty()}
+            .onErrorResume { Mono.empty() }
 
 }
