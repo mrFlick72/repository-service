@@ -50,7 +50,7 @@ jobs:
 
 
       - name: docker push latest version
-        if: ${{ GITHUB_REF##*/ != 'master' }}
+        if: ${GITHUB_REF##*/}!= 'master'
         run: |
           docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
           docker build . -t mrflick72/repository-service-k8s:latest
@@ -58,7 +58,7 @@ jobs:
 
 
       - name: docker push branch
-        if: ${{ GITHUB_REF##*/ == 'master' }}
+        if: ${GITHUB_REF##*/} == 'master'
         run: |
           docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
           docker build . -t mrflick72/repository-service-k8s:${GITHUB_REF##*/}
