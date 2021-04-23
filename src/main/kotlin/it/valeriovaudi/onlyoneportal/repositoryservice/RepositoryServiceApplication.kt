@@ -9,6 +9,7 @@ import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.*
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3.S3MetadataRepository
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3.S3Repository
 import it.valeriovaudi.onlyoneportal.repositoryservice.time.Clock
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
@@ -66,8 +67,12 @@ class RepositoryServiceApplication {
         applicationRepository: ApplicationRepository,
         sqsAsyncClient: SqsAsyncClient,
         s3Client: S3AsyncClient,
-        saveDocumentRepository: SaveDocumentRepository
-    ) =
+        saveDocumentRepository: SaveDocumentRepository,
+        @Value("\${storage.update-events.queue}") queue: String,
+        @Value("\${storage.update-events.max-number-of-message}") maxNumberOfMessage: Int,
+        @Value("\${storage.update-events.visibility-time-out}") visibilityTimeOut: Int,
+        @Value("\${storage.update-events.wait-time-seconds}") waitTimeSeconds: Int,
+        ) =
         StorageUpdateEventsListener(
             Clock(),
             documentUpdateEventSender,
@@ -76,8 +81,8 @@ class RepositoryServiceApplication {
             saveDocumentRepository,
             sqsAsyncClient,
             ReceiveMessageRequestFactory(
-                System.getenv("AWS_TESTING_SQS_STORAGE_REINDEX_QUEUE"),
-                10, 10, 10
+                queue,
+                maxNumberOfMessage, visibilityTimeOut, waitTimeSeconds
             ),
             Duration.ofSeconds(30)
         )
