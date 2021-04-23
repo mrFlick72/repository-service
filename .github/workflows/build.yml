@@ -49,17 +49,15 @@ jobs:
           mvn test
 
 
-      - name: docker push latest version
-        if: ${GITHUB_REF##*/}!= 'master'
+      - name: docker push
         run: |
-          docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
-          docker build . -t mrflick72/repository-service-k8s:latest
-          docker push mrflick72/repository-service-k8s:latest
-
-
-      - name: docker push branch
-        if: ${GITHUB_REF##*/} == 'master'
-        run: |
+          if [[ ${GITHUB_REF##*/} == 'master' ]]
+          then
+            DOCKER_TAG="latest"
+          else
+            DOCKER_TAG="${GITHUB_REF##*/}"
+          fi
+          echo "$DOCKER_TAG"
           docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
           docker build . -t mrflick72/repository-service-k8s:${GITHUB_REF##*/}
           docker push mrflick72/repository-service-k8s:${GITHUB_REF##*/}
