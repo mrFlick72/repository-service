@@ -7,6 +7,7 @@ import it.valeriovaudi.onlyoneportal.repositoryservice.documents.Document.Compan
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.SaveDocumentRepository
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3.S3MetadataRepository
 import it.valeriovaudi.onlyoneportal.repositoryservice.time.Clock
+import org.slf4j.LoggerFactory
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import reactor.core.publisher.Flux
@@ -15,6 +16,7 @@ import reactor.core.publisher.Mono.fromCompletionStage
 import software.amazon.awssdk.services.sqs.SqsAsyncClient
 import software.amazon.awssdk.services.sqs.model.Message
 import java.time.Duration
+import java.util.*
 
 class StorageUpdateEventsListener(
     private val clock : Clock,
@@ -26,6 +28,8 @@ class StorageUpdateEventsListener(
     private val factory: ReceiveMessageRequestFactory,
     private val duration: Duration
 ) : ApplicationRunner {
+
+    private val logger = LoggerFactory.getLogger(StorageUpdateEventsListener::class.java)
 
     fun listen() =
         Flux.interval(duration)
@@ -65,19 +69,27 @@ class StorageUpdateEventsListener(
                     Flux.fromIterable(it.read("\$..object.key", List::class.java))
                 )
             }.flatMap { Flux.just(mapOf("bucket" to it.t1.toString(), "key" to it.t2.toString())) }
-            .onErrorResume { Mono.empty()}
+            .onErrorResume {
+                logger.error(it.message, it)
+                Mono.empty()
+            }
 
 
     private fun objectMetadataFrom(metadata: Map<String, String>): Mono<DocumentMetadata> =
         s3MetadataRepository.objectMetadataFor(
             bucketNameFrom(metadata),
             objectKeyFrom(metadata),
-        )
+        ).onErrorResume {
+            logger.error(it.message, it)
+            Mono.empty()
+        }
 
-    private fun objectKeyFrom(metadata: Map<String, String>) = metadata["key"]!!
 
-    private fun bucketNameFrom(metadata: Map<String, String>) = metadata["bucket"]!!
+    private fun objectKeyFrom(metadata: Map<String, String>) = valueFrom(metadata, "key")
+    private fun bucketNameFrom(metadata: Map<String, String>) = valueFrom(metadata, "bucket")
 
+    private fun valueFrom(metadata: Map<String, String>, key: String) =
+        Optional.ofNullable(metadata).map { it.getOrDefault(key, "") }.orElse("")
 
     private fun updateIndexOnEsFrom(documentMetadata: DocumentMetadata) =
         applicationRepository.findApplicationFor(Storage(bucketNameFrom(documentMetadata.content)))
@@ -85,7 +97,7 @@ class StorageUpdateEventsListener(
                 saveDocumentRepository.save(emptyDocumentFrom(it, documentMetadata))
                     .then(Mono.defer { Mono.just(emptyDocumentFrom(it, documentMetadata)) })
             }
-            .orElse(Mono.error(RuntimeException()))
+            .orElse(Mono.error(RuntimeException("application not found for application metadata ${documentMetadata.content}")))
             .onErrorResume { Mono.empty()}
 
 }
