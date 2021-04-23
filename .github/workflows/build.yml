@@ -1,10 +1,7 @@
-name: build
+name: build a branch
 
 on:
-  push:
-    branches:
-      - master
-
+  push: { }
 
 jobs:
   provisioning:
@@ -28,10 +25,39 @@ jobs:
           sleep 30s
 
       - name: Build
-        run: ./gradlew build
+        run: |
+          export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+          export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          export AWS_REGION=${{ secrets.AWS_REGION }}
+          export AWS_DEFAULT_REGION=${{ secrets.AWS_REGION }}
+
+          export AWS_TESTING_SQS_STORAGE_REINDEX_QUEUE=${{ secrets.AWS_TESTING_SQS_QUEUE }}
+          export AWS_TESTING_S3_APPLICATION_STORAGE=${{ secrets.AWS_TESTING_S3_BUCKET }}
+
+          mvn clean install -DskipTests
+
+      - name: Test
+        run: |
+          export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+          export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          export AWS_REGION=${{ secrets.AWS_REGION }}
+          export AWS_DEFAULT_REGION=${{ secrets.AWS_REGION }}
+
+          export AWS_TESTING_SQS_STORAGE_REINDEX_QUEUE=${{ secrets.AWS_TESTING_SQS_QUEUE }}
+          export AWS_TESTING_S3_APPLICATION_STORAGE=${{ secrets.AWS_TESTING_S3_BUCKET }}
+
+          mvn test
+
 
       - name: docker push
         run: |
+          if [[ ${GITHUB_REF##*/} == 'master' ]]
+          then
+            DOCKER_TAG="latest"
+          else
+            DOCKER_TAG="${GITHUB_REF##*/}"
+          fi
+          echo "$DOCKER_TAG"
           docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
-          docker build . -t mrflick72/repository-service-k8s:latest
-          docker push mrflick72/repository-service-k8s:latest
+          docker build . -t mrflick72/repository-service-k8s:${GITHUB_REF##*/}
+          docker push mrflick72/repository-service-k8s:${GITHUB_REF##*/}

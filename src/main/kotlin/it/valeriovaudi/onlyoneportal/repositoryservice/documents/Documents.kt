@@ -4,39 +4,59 @@ import it.valeriovaudi.onlyoneportal.repositoryservice.application.Application
 import it.valeriovaudi.onlyoneportal.repositoryservice.application.Storage
 
 data class Document(
-        val application: Application,
-        val fileContent: FileContent,
-        val path: Path,
-        val userDocumentMetadata: UserDocumentMetadata
+    val application: Application,
+    val fileContent: FileContent,
+    val path: Path,
+    val userDocumentMetadata: UserDocumentMetadata
 ) {
     companion object {
+        fun emptyDocumentFrom(
+            it: Application,
+            documentMetadata: DocumentMetadata
+        ) = Document(
+            it,
+            FileContent(
+                FileName.fileNameFrom("${documentMetadata.fileNameFrom()}.${documentMetadata.extensionFrom()}"),
+                FileContentType.empty(),
+                ByteArray(0)
+            ),
+            Path(documentMetadata.pathFrom()), documentMetadata.userDocumentMetadata()
+        )
+
         fun fullQualifiedFilePathFor(path: Path, fileName: FileName) =
-                Document(Application.empty(),
-                        FileContent(fileName, FileContentType.empty(), ByteArray(0)),
-                        path,
-                        DocumentMetadata.empty())
-                        .fullQualifiedFilePath()
+            Document(
+                Application.empty(),
+                FileContent(fileName, FileContentType.empty(), ByteArray(0)),
+                path,
+                DocumentMetadata.empty()
+            )
+                .fullQualifiedFilePath()
 
         fun fileBasedMetadataFor(storage: Storage, path: Path, fileName: FileName): Map<String, String> =
-                mapOf(
-                        "fullQualifiedFilePath" to fullQualifiedFilePathFor(storage, path, fileName),
-                        "bucket" to storage.bucket,
-                        "path" to path.value,
-                        "fileName" to fileName.name,
-                        "extension" to fileName.extension
-                )
+            mapOf(
+                "fullQualifiedFilePath" to fullQualifiedFilePathFor(storage, path, fileName),
+                "bucket" to storage.bucket,
+                "path" to path.value,
+                "fileName" to fileName.name,
+                "extension" to fileName.extension
+            )
 
         fun fullQualifiedFilePathFor(storage: Storage, path: Path, fileName: FileName) =
-                "${listOf(storage.bucket, path.value, fileName.name).filter { it.isNotBlank() }.joinToString("/")}.${fileName.extension}"
+            "${
+                listOf(storage.bucket, path.value, fileName.name).filter { it.isNotBlank() }.joinToString("/")
+            }.${fileName.extension}"
 
     }
 
     fun metadataWithSystemMetadataFor(storage: Storage) =
-            userDocumentMetadata.content.plus(fileBasedMetadataFor(storage, path, fileContent.fileName))
+        userDocumentMetadata.content.plus(fileBasedMetadataFor(storage, path, fileContent.fileName))
+            .map { it.key.toLowerCase() to it.value }.toMap()
 
 
     fun fullQualifiedFilePath() =
-            "${listOf(path.value, fileContent.fileName.name).filter { it.isNotBlank() }.joinToString("/")}.${fileContent.fileName.extension}"
+        "${
+            listOf(path.value, fileContent.fileName.name).filter { it.isNotBlank() }.joinToString("/")
+        }.${fileContent.fileName.extension}"
 
 }
 
@@ -82,6 +102,27 @@ data class FileContentType(val value: String) {
 data class Path(val value: String)
 
 data class DocumentMetadata(val content: Map<String, String>) {
+    fun userDocumentMetadata(): UserDocumentMetadata =
+        UserDocumentMetadata(content.filterNot {
+            arrayOf(
+                "bucket",
+                "path",
+                "filename",
+                "extension",
+                "fullqualifiedfilepath"
+            ).contains(it.key)
+        })
+
+
+    fun pathFrom(): String =
+        content["path"]!!
+
+    fun extensionFrom() =
+        content["extension"]!!
+
+    fun fileNameFrom() =
+        content["filename"]!!
+
     companion object {
         fun empty() = DocumentMetadata(emptyMap())
     }
