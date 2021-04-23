@@ -65,6 +65,7 @@ class StorageUpdateEventsListener(
                     Flux.fromIterable(it.read("\$..object.key", List::class.java))
                 )
             }.flatMap { Flux.just(mapOf("bucket" to it.t1.toString(), "key" to it.t2.toString())) }
+            .onErrorResume { Mono.empty()}
 
 
     private fun objectMetadataFrom(metadata: Map<String, String>): Mono<DocumentMetadata> =
@@ -85,5 +86,6 @@ class StorageUpdateEventsListener(
                     .then(Mono.defer { Mono.just(emptyDocumentFrom(it, documentMetadata)) })
             }
             .orElse(Mono.error(RuntimeException()))
+            .onErrorResume { Mono.empty()}
 
 }
