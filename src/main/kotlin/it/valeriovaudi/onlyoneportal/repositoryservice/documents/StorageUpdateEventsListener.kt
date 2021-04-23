@@ -37,16 +37,8 @@ class StorageUpdateEventsListener(
             .flatMap { fetchMessages() }
             .flatMap(this::objectMetadataFrom)
             .flatMap(this::updateIndexOnEsFrom)
-            .flatMap { document ->
-                documentUpdateEventSender.publishEventFor(
-                    StorageUpdateEvent(
-                        document.application.applicationName,
-                        document.path,
-                        document.fileContent.fileName,
-                        clock.now()
-                    )
-                )
-            }.doOnComplete { logger.info("subscription completed") }
+            .flatMap(this::pushDocumentUpdateEventFor)
+            .doOnComplete { logger.info("subscription completed") }
             .doOnCancel { logger.info("subscription cancelled") }
             .doOnSubscribe { logger.info("subscription started") }
             .doOnError { e -> logger.error("subscription error: ", e) };
@@ -111,4 +103,13 @@ class StorageUpdateEventsListener(
             .orElse(Mono.error(RuntimeException("application not found for application metadata ${documentMetadata.content}")))
             .onErrorResume { Mono.empty() }
 
+    private fun pushDocumentUpdateEventFor(document: Document) =
+        documentUpdateEventSender.publishEventFor(
+            StorageUpdateEvent(
+                document.application.applicationName,
+                document.path,
+                document.fileContent.fileName,
+                clock.now()
+            )
+        )
 }
