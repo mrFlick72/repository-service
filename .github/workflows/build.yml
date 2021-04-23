@@ -1,4 +1,4 @@
-name: build a branch
+name: build
 
 on:
   push: { }
