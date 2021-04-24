@@ -19,8 +19,7 @@ internal class ESRepositoryTest {
 
     private fun esRepositoryFor(host: String): ESRepository {
 
-        val template: ReactiveElasticsearchTemplate =
-            ReactiveElasticsearchTemplate(create(builder().connectedTo(host).build()))
+        val template = ReactiveElasticsearchTemplate(create(builder().connectedTo(host).build()))
 
         val idGenerator = DocumentEsIdGenerator()
         return ESRepository(
