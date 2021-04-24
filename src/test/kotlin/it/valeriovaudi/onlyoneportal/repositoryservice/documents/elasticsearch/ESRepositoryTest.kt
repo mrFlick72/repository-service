@@ -3,7 +3,6 @@ package it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch
 import it.valeriovaudi.onlyoneportal.repositoryservice.application.Application
 import it.valeriovaudi.onlyoneportal.repositoryservice.application.ApplicationName
 import it.valeriovaudi.onlyoneportal.repositoryservice.application.Storage
-import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.aFakeDocumentWith
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentFixture.randomizer
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.DocumentMetadata
@@ -18,20 +17,25 @@ import java.util.*
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 internal class ESRepositoryTest {
 
-    private fun template(): ReactiveElasticsearchTemplate =
-        ReactiveElasticsearchTemplate(create(builder().connectedTo("localhost:39200").build()))
+    private fun esRepositoryFor(host: String): ESRepository {
 
-    private val reactiveElasticsearchTemplate = template()
-    private val idGenerator = DocumentEsIdGenerator()
-    private val esRepository = ESRepository(
-        DeleteDocumentRepository(reactiveElasticsearchTemplate, idGenerator),
-        FindAllDocumentRepository(reactiveElasticsearchTemplate),
-        SaveDocumentRepository(reactiveElasticsearchTemplate, idGenerator)
-    )
+        val template: ReactiveElasticsearchTemplate =
+            ReactiveElasticsearchTemplate(create(builder().connectedTo(host).build()))
+
+        val idGenerator = DocumentEsIdGenerator()
+        return ESRepository(
+            DeleteDocumentRepository(template, idGenerator),
+            FindAllDocumentRepository(template),
+            SaveDocumentRepository(template, idGenerator)
+        )
+
+    }
 
     @Test
     @Order(1)
     internal fun `save a document on es`() {
+
+        val esRepository = esRepositoryFor("localhost:39200")
         val document = aFakeDocumentWith(randomizer);
         val saveStream = esRepository.saveDocumentFor(document)
         val writerVerifier = StepVerifier.create(saveStream)
@@ -77,6 +81,8 @@ internal class ESRepositoryTest {
     @Test
     @Order(2)
     internal fun `save a document on es goes in error`() {
+        val esRepository = esRepositoryFor("wrong-host:39200")
+
         val document = aFakeDocumentWith(randomizer);
         val saveStream = esRepository.saveDocumentFor(document)
         val writerVerifier = StepVerifier.create(saveStream)
