@@ -14,7 +14,6 @@ import reactor.kotlin.core.publisher.toMono
 
 class SaveDocumentRepository(private val reactiveElasticsearchTemplate: ReactiveElasticsearchTemplate,
                              private val idGenerator: ESIdGenerator<Triple<Storage, Path, FileName>>) {
-    private val logger = LoggerFactory.getLogger(SaveDocumentRepository::class.java)
 
     fun save(document: Document) =
             saveOnEsFor(document).flatMap { Mono.just(Unit) }
@@ -22,10 +21,7 @@ class SaveDocumentRepository(private val reactiveElasticsearchTemplate: Reactive
     private fun saveOnEsFor(document: Document): Mono<IndexResponse> =
             reactiveElasticsearchTemplate.execute { client ->
                 client.index(indexRequestFor(document))
-            }.toMono().onErrorResume {
-                logger.error(it.message, it)
-                Mono.empty()
-            }
+            }.toMono()
 
 
     private fun indexRequestFor(document: Document): (IndexRequest) -> Unit = { indexRequest ->

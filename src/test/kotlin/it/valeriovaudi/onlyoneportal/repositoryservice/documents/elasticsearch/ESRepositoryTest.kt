@@ -14,7 +14,6 @@ import org.springframework.data.elasticsearch.core.ReactiveElasticsearchTemplate
 import reactor.test.StepVerifier
 import java.util.*
 
-@TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 internal class ESRepositoryTest {
 
     private fun esRepositoryFor(host: String): ESRepository {
@@ -31,7 +30,6 @@ internal class ESRepositoryTest {
     }
 
     @Test
-    @Order(1)
     internal fun `save a document on es`() {
 
         val esRepository = esRepositoryFor("localhost:39200")
@@ -77,14 +75,4 @@ internal class ESRepositoryTest {
         readVerifier.verifyComplete()
     }
 
-    @Test
-    @Order(2)
-    internal fun `save a document on es goes in error`() {
-        val esRepository = esRepositoryFor("wrong-host:39200")
-
-        val document = aFakeDocumentWith(randomizer);
-        val saveStream = esRepository.saveDocumentFor(document)
-        val writerVerifier = StepVerifier.create(saveStream)
-        writerVerifier.verifyComplete()
-    }
 }
