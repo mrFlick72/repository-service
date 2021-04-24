@@ -7,7 +7,6 @@ import it.valeriovaudi.onlyoneportal.repositoryservice.documents.Path
 import org.elasticsearch.action.index.IndexRequest
 import org.elasticsearch.action.index.IndexResponse
 import org.elasticsearch.action.support.WriteRequest
-import org.slf4j.LoggerFactory
 import org.springframework.data.elasticsearch.core.ReactiveElasticsearchTemplate
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
