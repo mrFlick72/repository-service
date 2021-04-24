@@ -100,8 +100,11 @@ class StorageUpdateEventsListener(
                 saveDocumentRepository.save(emptyDocumentFrom(it, documentMetadata))
                     .then(Mono.defer { Mono.just(emptyDocumentFrom(it, documentMetadata)) })
             }
-            .orElse(Mono.error(RuntimeException("application not found for application metadata ${documentMetadata.content}")))
-            .onErrorResume { Mono.empty() }
+            .orElseGet {
+                logger.warn("application not found for application metadata ${documentMetadata.content}")
+                Mono.empty()
+            }
+
 
     private fun pushDocumentUpdateEventFor(document: Document) =
         documentUpdateEventSender.publishEventFor(

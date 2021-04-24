@@ -73,4 +73,13 @@ internal class ESRepositoryTest {
         }
         readVerifier.verifyComplete()
     }
+
+    @Test
+    @Order(2)
+    internal fun `save a document on es goes in error`() {
+        val document = aFakeDocumentWith(randomizer);
+        val saveStream = esRepository.saveDocumentFor(document)
+        val writerVerifier = StepVerifier.create(saveStream)
+        writerVerifier.verifyComplete()
+    }
 }

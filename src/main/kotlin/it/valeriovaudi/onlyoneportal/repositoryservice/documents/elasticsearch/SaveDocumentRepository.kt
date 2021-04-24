@@ -19,7 +19,7 @@ class SaveDocumentRepository(private val reactiveElasticsearchTemplate: Reactive
     private fun saveOnEsFor(document: Document): Mono<IndexResponse> =
             reactiveElasticsearchTemplate.execute { client ->
                 client.index(indexRequestFor(document))
-            }.toMono()
+            }.toMono().onErrorResume { Mono.empty() }
 
 
     private fun indexRequestFor(document: Document): (IndexRequest) -> Unit = { indexRequest ->
