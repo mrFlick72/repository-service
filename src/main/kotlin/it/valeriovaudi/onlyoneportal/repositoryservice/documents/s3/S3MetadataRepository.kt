@@ -13,6 +13,6 @@ class S3MetadataRepository(private val s3Client: S3AsyncClient) {
             .key(objectKey)
             .build()
         return Mono.fromCompletionStage { s3Client.headObject(request) }
-            .flatMap { Mono.just(DocumentMetadata(it.metadata())) }
+            .flatMap { Mono.just(DocumentMetadata(it.metadata().mapKeys { entry -> entry.key.replace("x-amz-meta-", "") })) }
     }
 }
