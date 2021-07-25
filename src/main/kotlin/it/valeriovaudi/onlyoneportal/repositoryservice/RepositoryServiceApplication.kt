@@ -21,7 +21,7 @@ import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.sqs.SqsAsyncClient
 import java.time.Duration
 
-@SpringBootApplication
+@SpringBootApplication(proxyBeanMethods = false)
 @EnableConfigurationProperties(YamlApplicationStorageMapping::class)
 class RepositoryServiceApplication {
 
@@ -42,14 +42,15 @@ class RepositoryServiceApplication {
     fun documentRepository(
         reactiveElasticsearchTemplate: ReactiveElasticsearchTemplate,
         s3Client: S3AsyncClient,
-        documentUpdateEventSender: DocumentUpdateEventSender
+        documentUpdateEventSender: DocumentUpdateEventSender,
+        saveDocumentRepository : SaveDocumentRepository
     ) = AWSCompositeDocumentRepository(
         Clock(),
         S3Repository(s3Client),
         ESRepository(
             DeleteDocumentRepository(reactiveElasticsearchTemplate, DocumentEsIdGenerator()),
             FindAllDocumentRepository(reactiveElasticsearchTemplate),
-            saveDocumentRepository(reactiveElasticsearchTemplate)
+            saveDocumentRepository
         ),
         documentUpdateEventSender
     )
