@@ -41,7 +41,7 @@ jobs:
           export AWS_TESTING_SQS_STORAGE_REINDEX_QUEUE=${{ secrets.AWS_TESTING_SQS_QUEUE }}
           export AWS_TESTING_S3_APPLICATION_STORAGE=${{ secrets.AWS_TESTING_S3_BUCKET }}
 
-          mvn clean install -DskipTests
+          mvn clean install -DskipTests -Pnative
 
       - name: Test
         run: |
