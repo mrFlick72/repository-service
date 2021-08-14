@@ -18,6 +18,9 @@ jobs:
           cd /usr/lib/jvm
           ln -s graalvm-ce-java11-21.2.0 graalvm
 
+          export JAVA_HOME=/usr/lib/jvm/graalvm-ce-java11-21.2.0
+          export PATH=$JAVA_HOME/bin:$PATH
+
           gu install native-image
 
           sudo apt-get install libz-dev
