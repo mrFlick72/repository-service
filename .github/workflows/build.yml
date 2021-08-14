@@ -18,6 +18,13 @@ jobs:
           cd /usr/lib/jvm
           ln -s graalvm-ce-java11-linux-amd64-21.2.0 graalvm
 
+          sudo apt-get install libz-dev
+
+          sudo apt-get update && sudo apt-get upgrade
+          sudo apt-get install build-essential
+          sudo apt-get install aptitude
+          sudo apt-get install libstdc++6
+
       - name: run testing environment
         run: |
           cd src/test/resources
