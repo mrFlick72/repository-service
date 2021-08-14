@@ -40,7 +40,7 @@ jobs:
 
           export AWS_TESTING_SQS_STORAGE_REINDEX_QUEUE=${{ secrets.AWS_TESTING_SQS_QUEUE }}
           export AWS_TESTING_S3_APPLICATION_STORAGE=${{ secrets.AWS_TESTING_S3_BUCKET }}
-
+          export JAVA_HOME=/usr/lib/jvm/graalvm-ce-java11-21.2.0
           mvn clean install -q -DskipTests -Pnative
 
 #      - name: Test
