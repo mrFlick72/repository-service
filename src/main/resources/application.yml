@@ -1,3 +1,12 @@
 spring:
   application:
     name: repository-service
+
+
+  cloud:
+    refresh:
+      enabled: false
+
+  sleuth:
+    async:
+      enabled: false
