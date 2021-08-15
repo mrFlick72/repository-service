@@ -6,4 +6,4 @@ VOLUME /var/log/onlyone-portal
 
 WORKDIR /usr/local/repository-service/
 
-CMD ["repository-service"]
+CMD ["./repository-service"]
