@@ -23,10 +23,6 @@ import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.sqs.SqsAsyncClient
 import java.time.Duration
 
-@TypeHints(
-        TypeHint(types = [ApplicationRepository::class], typeNames = ["it.valeriovaudi.onlyoneportal.repositoryservice.application.YamlApplicationRepository"]),
-        TypeHint(types = [DocumentRepository::class], typeNames = ["it.valeriovaudi.onlyoneportal.repositoryservice.documents.AWSCompositeDocumentRepository"])
-)
 @SpringBootApplication(proxyBeanMethods = false)
 @EnableConfigurationProperties(YamlApplicationStorageMapping::class)
 class RepositoryServiceApplication {
