@@ -52,7 +52,6 @@ jobs:
       - name: docker push
         run: |
           if [[ ${GITHUB_REF##*/} = 'master' ]]
-          if [[ ${GITHUB_REF##*/} == 'master' ]]
           then
             DOCKER_TAG="latest"
           else
@@ -62,5 +61,3 @@ jobs:
           docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
           docker build . -t mrflick72/repository-service-k8s:${GITHUB_REF##*/}
           docker push mrflick72/repository-service-k8s:${GITHUB_REF##*/}
-          docker build . -t mrflick72/repository-service-k8s:$DOCKER_TAG
-          docker push mrflick72/repository-service-k8s:$DOCKER_TAG
