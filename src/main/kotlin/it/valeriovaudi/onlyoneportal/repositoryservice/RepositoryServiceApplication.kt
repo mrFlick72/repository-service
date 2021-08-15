@@ -15,8 +15,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.data.elasticsearch.core.ReactiveElasticsearchTemplate
-import org.springframework.nativex.hint.TypeHint
-import org.springframework.nativex.hint.TypeHints
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider
 import software.amazon.awssdk.services.s3.S3AsyncClient
