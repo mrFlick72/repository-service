@@ -1,9 +1,7 @@
 package it.valeriovaudi.onlyoneportal.repositoryservice
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import it.valeriovaudi.onlyoneportal.repositoryservice.application.ApplicationRepository
-import it.valeriovaudi.onlyoneportal.repositoryservice.application.YamlApplicationRepository
-import it.valeriovaudi.onlyoneportal.repositoryservice.application.YamlApplicationStorageMapping
+import it.valeriovaudi.onlyoneportal.repositoryservice.application.*
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.*
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.*
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3.S3MetadataRepository
@@ -25,7 +23,19 @@ import java.time.Duration
 
 @TypeHints(
         TypeHint(types = [ApplicationRepository::class], typeNames = ["it.valeriovaudi.onlyoneportal.repositoryservice.application.YamlApplicationRepository"]),
-        TypeHint(types = [DocumentRepository::class], typeNames = ["it.valeriovaudi.onlyoneportal.repositoryservice.documents.AWSCompositeDocumentRepository"])
+        TypeHint(types = [DocumentRepository::class], typeNames = ["it.valeriovaudi.onlyoneportal.repositoryservice.documents.AWSCompositeDocumentRepository"]),
+
+        TypeHint(types = [ApplicationName::class]),
+        TypeHint(types = [Application::class]),
+        TypeHint(types = [Storage::class]),
+
+        TypeHint(types = [Document::class]),
+        TypeHint(types = [FileContent::class]),
+        TypeHint(types = [FileName::class]),
+        TypeHint(types = [FileContentType::class]),
+        TypeHint(types = [Path::class]),
+        TypeHint(types = [DocumentMetadata::class]),
+        TypeHint(types = [DocumentMetadataPage::class]),
 )
 @SpringBootApplication(proxyBeanMethods = false)
 @EnableConfigurationProperties(YamlApplicationStorageMapping::class)
