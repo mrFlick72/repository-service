@@ -2,7 +2,6 @@ name: build
 
 on:
   push: { }
-  workflow_dispatch:  {}
 
 jobs:
   provisioning:
@@ -11,31 +10,19 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: install graalVM
+      - name: install openjdk
         run: |
-          wget https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-21.2.0/graalvm-ce-java11-linux-amd64-21.2.0.tar.gz
-          tar -xvzf graalvm-ce-java11-linux-amd64-21.2.0.tar.gz
-          mv graalvm-ce-java11-21.2.0/ /usr/lib/jvm/
-          cd /usr/lib/jvm
-          ln -s graalvm-ce-java11-21.2.0 graalvm
+          sudo apt-get update && sudo apt-get install openjdk-11-jdk
+          sudo update-alternatives --set java /usr/lib/jvm/java-11-openjdk-amd64/bin/java
+          sudo update-alternatives --set javac /usr/lib/jvm/java-11-openjdk-amd64/bin/javac
+          java -version
 
-          export JAVA_HOME=/usr/lib/jvm/graalvm-ce-java11-21.2.0
-          export PATH=$JAVA_HOME/bin:$PATH
 
-          gu install native-image
-
-          sudo apt-get install libz-dev
-
-          sudo apt-get update && sudo apt-get upgrade
-          sudo apt-get install build-essential
-          sudo apt-get install aptitude
-          sudo apt-get install libstdc++6
-
-#      - name: run testing environment
-#        run: |
-#          cd src/test/resources
-#          docker-compose up &
-#          sleep 30s
+      - name: run testing environment
+        run: |
+          cd src/test/resources
+          docker-compose up &
+          sleep 30s
 
       - name: Build
         run: |
@@ -47,26 +34,24 @@ jobs:
           export AWS_TESTING_SQS_STORAGE_REINDEX_QUEUE=${{ secrets.AWS_TESTING_SQS_QUEUE }}
           export AWS_TESTING_S3_APPLICATION_STORAGE=${{ secrets.AWS_TESTING_S3_BUCKET }}
 
-          export JAVA_HOME=/usr/lib/jvm/graalvm-ce-java11-21.2.0
-          export PATH=$JAVA_HOME/bin:$PATH
+          mvn clean install -DskipTests
 
-          mvn clean install -q -DskipTests -Pnative
+      - name: Test
+        run: |
+          export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+          export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          export AWS_REGION=${{ secrets.AWS_REGION }}
+          export AWS_DEFAULT_REGION=${{ secrets.AWS_REGION }}
 
-#      - name: Test
-#        run: |
-#          export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
-#          export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#          export AWS_REGION=${{ secrets.AWS_REGION }}
-#          export AWS_DEFAULT_REGION=${{ secrets.AWS_REGION }}
-#
-#          export AWS_TESTING_SQS_STORAGE_REINDEX_QUEUE=${{ secrets.AWS_TESTING_SQS_QUEUE }}
-#          export AWS_TESTING_S3_APPLICATION_STORAGE=${{ secrets.AWS_TESTING_S3_BUCKET }}
-#
-#          mvn test
+          export AWS_TESTING_SQS_STORAGE_REINDEX_QUEUE=${{ secrets.AWS_TESTING_SQS_QUEUE }}
+          export AWS_TESTING_S3_APPLICATION_STORAGE=${{ secrets.AWS_TESTING_S3_BUCKET }}
+
+          mvn test
 
 
       - name: docker push
         run: |
+          if [[ ${GITHUB_REF##*/} = 'master' ]]
           if [[ ${GITHUB_REF##*/} == 'master' ]]
           then
             DOCKER_TAG="latest"
@@ -75,5 +60,7 @@ jobs:
           fi
           echo "$DOCKER_TAG"
           docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
+          docker build . -t mrflick72/repository-service-k8s:${GITHUB_REF##*/}
+          docker push mrflick72/repository-service-k8s:${GITHUB_REF##*/}
           docker build . -t mrflick72/repository-service-k8s:$DOCKER_TAG
           docker push mrflick72/repository-service-k8s:$DOCKER_TAG
