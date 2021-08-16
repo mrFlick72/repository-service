@@ -7,12 +7,14 @@ import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.*
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3.S3MetadataRepository
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3.S3Repository
 import it.valeriovaudi.onlyoneportal.repositoryservice.time.Clock
+import org.elasticsearch.action.index.IndexResponse
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.data.elasticsearch.core.ReactiveElasticsearchTemplate
+import org.springframework.nativex.hint.MethodHint
 import org.springframework.nativex.hint.TypeHint
 import org.springframework.nativex.hint.TypeHints
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
@@ -36,6 +38,7 @@ import java.time.Duration
         TypeHint(types = [Path::class]),
         TypeHint(types = [DocumentMetadata::class]),
         TypeHint(types = [DocumentMetadataPage::class]),
+        TypeHint(types = [IndexResponse::class]),
 )
 @SpringBootApplication(proxyBeanMethods = false)
 @EnableConfigurationProperties(YamlApplicationStorageMapping::class)
