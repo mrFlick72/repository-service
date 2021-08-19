@@ -1,26 +1,44 @@
 package it.valeriovaudi.onlyoneportal.repositoryservice
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import it.valeriovaudi.onlyoneportal.repositoryservice.application.ApplicationRepository
-import it.valeriovaudi.onlyoneportal.repositoryservice.application.YamlApplicationRepository
-import it.valeriovaudi.onlyoneportal.repositoryservice.application.YamlApplicationStorageMapping
+import it.valeriovaudi.onlyoneportal.repositoryservice.application.*
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.*
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.elasticsearch.*
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3.S3MetadataRepository
 import it.valeriovaudi.onlyoneportal.repositoryservice.documents.s3.S3Repository
 import it.valeriovaudi.onlyoneportal.repositoryservice.time.Clock
+import org.elasticsearch.action.index.IndexResponse
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.data.elasticsearch.core.ReactiveElasticsearchTemplate
+import org.springframework.nativex.hint.TypeHint
+import org.springframework.nativex.hint.TypeHints
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.sqs.SqsAsyncClient
 import java.time.Duration
 
+@TypeHints(
+        TypeHint(types = [ApplicationRepository::class], typeNames = ["it.valeriovaudi.onlyoneportal.repositoryservice.application.YamlApplicationRepository"]),
+        TypeHint(types = [DocumentRepository::class], typeNames = ["it.valeriovaudi.onlyoneportal.repositoryservice.documents.AWSCompositeDocumentRepository"]),
+
+        TypeHint(types = [ApplicationName::class]),
+        TypeHint(types = [Application::class]),
+        TypeHint(types = [Storage::class]),
+
+        TypeHint(types = [Document::class]),
+        TypeHint(types = [FileContent::class]),
+        TypeHint(types = [FileName::class]),
+        TypeHint(types = [FileContentType::class]),
+        TypeHint(types = [Path::class]),
+        TypeHint(types = [DocumentMetadata::class]),
+        TypeHint(types = [DocumentMetadataPage::class]),
+        TypeHint(types = [IndexResponse::class]),
+)
 @SpringBootApplication(proxyBeanMethods = false)
 @EnableConfigurationProperties(YamlApplicationStorageMapping::class)
 class RepositoryServiceApplication {
